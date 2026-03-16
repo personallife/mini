@@ -71,8 +71,8 @@ class GameScene extends Phaser.Scene {
         // 1. 星空滚动背景
         this.createScrollingStarfield();
 
-        // 2. 玩家飞机 - 固定在底部（键盘显示时上移留出空间）
-        const playerY = this.showKeyboard ? height - 145 : height - 60;
+        // 2. 玩家飞机 - 固定在底部（键盘显示时放在键盘顶部，与高级一样）
+        const playerY = this.showKeyboard ? height - 230 : height - 60;
         this.player = this.add.image(width / 2, playerY, 'player');
         this.player.setScale(0.35);
 
@@ -1409,6 +1409,16 @@ class GameScene extends Phaser.Scene {
         this.bossTypedIndex = 0;
         this.boss.wordText.setText(word.toLowerCase()).setAlpha(1);
         this.boss.typedText.setText('').setVisible(false);
+
+        // 新单词出现时，首字母闪烁提示
+        const firstLetter = word[0].toUpperCase();
+        const hint = this.add.text(this.boss.x, this.boss.y + this.boss.sprite.displayHeight / 2 + 50, firstLetter, {
+            font: 'bold 36px Arial', fill: '#00ff88', stroke: '#003311', strokeThickness: 4
+        }).setOrigin(0.5).setDepth(100).setAlpha(0);
+        this.tweens.add({
+            targets: hint, alpha: 1, scaleX: 1.5, scaleY: 1.5, duration: 200,
+            yoyo: true, hold: 300, onComplete: () => hint.destroy()
+        });
     }
 
     /**
@@ -1434,8 +1444,8 @@ class GameScene extends Phaser.Scene {
     fireBossBullet() {
         if (this.isPaused || this.isGameOver || !this.bossActive || !this.boss) return;
         const cfg = this.boss.config;
-        const count = this.bossFinalForm ? cfg.bulletCount + 1 : (this.bossEnraged ? cfg.bulletCount : Math.max(1, cfg.bulletCount - 1));
-        const bSpeed = this.bossFinalForm ? cfg.bulletSpeed * 1.3 : (this.bossEnraged ? cfg.bulletSpeed * 1.15 : cfg.bulletSpeed);
+        const count = Math.max(1, cfg.bulletCount);
+        const bSpeed = this.bossFinalForm ? cfg.bulletSpeed * 1.03 : (this.bossEnraged ? cfg.bulletSpeed * 1.01 : cfg.bulletSpeed);
 
         for (let i = 0; i < count; i++) {
             this.time.delayedCall(i * 300, () => {
@@ -1448,17 +1458,17 @@ class GameScene extends Phaser.Scene {
                 // \u7784\u51c6\u73a9\u5bb6\u65b9\u5411 + \u968f\u673a\u504f\u79fb
                 const px = this.player ? this.player.x : this.gameWidth / 2;
                 const py = this.player ? this.player.y : this.gameHeight - 60;
-                const angle = Math.atan2(py - by, px - bx) + Phaser.Math.FloatBetween(-0.2, 0.2);
+                const angle = Math.atan2(py - by, px - bx) + Phaser.Math.FloatBetween(-0.4, 0.4);
                 const vx = Math.cos(angle) * bSpeed;
                 const vy = Math.sin(angle) * bSpeed;
 
                 // \u521b\u5efa\u5b50\u5f39\u7cbe\u7075
-                const bulletSprite = this.add.circle(bx, by, 10, 0xff3333, 0.9).setDepth(20);
-                // \u5b57\u6bcd\u6587\u672c
-                const bulletText = this.add.text(bx, by, letter, {
-                    font: 'bold 14px Arial', fill: '#ffffff', stroke: '#660000', strokeThickness: 2
+                const bulletSprite = this.add.circle(bx, by, 26, 0xff3333, 0.9).setDepth(20);
+                bulletSprite.setStrokeStyle(3, 0xff6666, 0.7);
+                // 字母文本（超大字体，绝对清晰）
+                const bulletText = this.add.text(bx, by, letter.toUpperCase(), {
+                    font: 'bold 28px Arial', fill: '#ffffff', stroke: '#660000', strokeThickness: 4
                 }).setOrigin(0.5).setDepth(21);
-
                 this.bossBullets.push({
                     x: bx, y: by, vx: vx, vy: vy,
                     letter: letter, sprite: bulletSprite, text: bulletText, alive: true
@@ -1536,15 +1546,15 @@ class GameScene extends Phaser.Scene {
         const cfg = b.config;
 
         // Boss \u5de6\u53f3\u7f13\u6162\u79fb\u52a8
-        this.bossMovementPhase += dt * (this.bossEnraged ? 1.5 : 0.8);
-        const moveRange = this.bossEnraged ? 120 : 80;
+        this.bossMovementPhase += dt * (this.bossEnraged ? 0.8 : 0.5);
+        const moveRange = this.bossEnraged ? 80 : 50;
         b.x = this.gameWidth / 2 + Math.sin(this.bossMovementPhase) * moveRange;
         b.sprite.setPosition(b.x, b.sprite.y);
         b.wordText.setPosition(b.x, b.sprite.y + b.sprite.displayHeight / 2 + 20);
         b.typedText.setPosition(b.x - b.wordText.width / 2, b.wordText.y);
 
         // Boss \u5b50\u5f39\u53d1\u5c04\u8ba1\u65f6
-        const interval = this.bossFinalForm ? cfg.bulletInterval * 0.6 : (this.bossEnraged ? cfg.bulletInterval * 0.75 : cfg.bulletInterval);
+        const interval = this.bossFinalForm ? cfg.bulletInterval * 0.92 : (this.bossEnraged ? cfg.bulletInterval * 0.96 : cfg.bulletInterval);
         this.bossBulletTimer += delta;
         if (this.bossBulletTimer >= interval) {
             this.bossBulletTimer = 0;
@@ -1566,6 +1576,26 @@ class GameScene extends Phaser.Scene {
             alpha: 0.3, duration: 80, yoyo: true, repeat: 2
         });
         this.createExplosion(this.boss.x + Phaser.Math.Between(-40, 40), this.boss.y + Phaser.Math.Between(-20, 20));
+
+        // Boss\u53d7\u4f24\u600e\u5410\uff08\u968f\u673a\u6015\u58f0\uff0c\u589e\u52a0\u8da3\u5473\u6027\uff09
+        if (Math.random() < 0.4) {
+            const taunts = ['\u554a\uff01', '\u53ef\u6076\uff01', '\u4f60..!', '\u5c0f\u5fc3\uff01', '\u563f\uff01', '\u4e0d\u53ef\u80fd!'];
+            const taunt = Phaser.Utils.Array.GetRandom(taunts);
+            const tauntText = this.add.text(this.boss.x + Phaser.Math.Between(-30, 30), this.boss.y - 30, taunt, {
+                font: 'bold 16px Arial', fill: '#ff6666', stroke: '#330000', strokeThickness: 2
+            }).setOrigin(0.5).setDepth(100);
+            this.tweens.add({ targets: tauntText, y: tauntText.y - 40, alpha: 0, duration: 800, onComplete: () => tauntText.destroy() });
+        }
+
+        // \u8fde\u7eed\u6253\u51fb\u9f13\u52b1\uff08\u6bcf3\u6b21\u547d\u4e2d\u63d0\u793a\uff09
+        if (this.bossHitsLanded % 3 === 0 && this.bossHitsLanded > 0) {
+            const cheers = ['\u5e72\u5f97\u6f02\u4eae\uff01', '\u7ee7\u7eed\u52a0\u6cb9\uff01', '\u5c31\u8fd9\u6837\uff01', '\u8d85\u68d2\uff01', '\u518d\u63a5\u518d\u5389\uff01'];
+            const cheer = Phaser.Utils.Array.GetRandom(cheers);
+            const cheerText = this.add.text(this.gameWidth / 2, this.player.y - 50, cheer, {
+                font: 'bold 18px Arial', fill: '#88ff88', stroke: '#003300', strokeThickness: 3
+            }).setOrigin(0.5).setDepth(100).setAlpha(0);
+            this.tweens.add({ targets: cheerText, alpha: 1, y: this.player.y - 80, duration: 300, yoyo: true, hold: 400, onComplete: () => cheerText.destroy() });
+        }
 
         // Boss\u53d7\u4f24\u65f6\u6982\u7387\u6389\u843d\u9053\u5177\uff08\u56de\u8840/\u62a4\u76fe\uff09
         const dropChance = this.boss.config.powerupChance || 0.25;
@@ -1606,6 +1636,19 @@ class GameScene extends Phaser.Scene {
                 targets: finalText, alpha: 1, duration: 200, yoyo: true,
                 hold: 800, onComplete: () => finalText.destroy()
             });
+            // \u7edd\u5883\u798f\u5229\uff1a\u81ea\u52a8\u6062\u590d1\u70b9\u751f\u547d + \u6389\u843d\u989d\u5916\u9053\u5177
+            if (this.lives < this.levelConfig.lives) {
+                this.lives++;
+                this.updateHeartsDisplay();
+                const healHint = this.add.text(this.gameWidth / 2, this.gameHeight / 2 + 20, '\ud83d\udc9a \u7edd\u5883\u798f\u5229 +1 \u751f\u547d\uff01', {
+                    font: 'bold 20px Arial', fill: '#44ff88',
+                    stroke: '#003322', strokeThickness: 3
+                }).setOrigin(0.5).setDepth(100).setAlpha(0);
+                this.tweens.add({ targets: healHint, alpha: 1, duration: 200, yoyo: true, hold: 600, onComplete: () => healHint.destroy() });
+            }
+            // \u6389\u843d\u989d\u5916\u9053\u5177\u5e2e\u52a9\u73a9\u5bb6
+            this.spawnBossPowerup(this.boss.x - 50, this.boss.y + 60);
+            this.spawnBossPowerup(this.boss.x + 50, this.boss.y + 60);
         }
 
         if (this.bossHP <= 0) {
@@ -2128,7 +2171,34 @@ class GameScene extends Phaser.Scene {
             k.text.setColor('#8899aa');
         });
 
-        // 高亮目标按键
+        // Boss 战时的键盘高亮
+        if (this.bossActive && this.bossWord) {
+            // 高亮 Boss 单词当前需要输入的字母（绿色）
+            const bossTargetChar = this.bossWord[this.bossTypedIndex];
+            if (bossTargetChar && this.keyboardKeys[bossTargetChar]) {
+                this.keyboardKeys[bossTargetChar].text.setColor('#00ff88');
+            }
+            // 高亮 Boss 子弹字母（红色警告）
+            for (const b of this.bossBullets) {
+                if (b.alive && this.keyboardKeys[b.letter]) {
+                    // 不覆盖Boss目标字母的绿色
+                    if (b.letter !== bossTargetChar) {
+                        this.keyboardKeys[b.letter].text.setColor('#ff4444');
+                    }
+                }
+            }
+            // 高亮道具字母（黄色）
+            for (const p of this.powerups) {
+                if (p.alive && this.keyboardKeys[p.collectLetter]) {
+                    if (p.collectLetter !== bossTargetChar) {
+                        this.keyboardKeys[p.collectLetter].text.setColor('#ffff00');
+                    }
+                }
+            }
+            return;
+        }
+
+        // 普通模式高亮目标按键
         let targetChar = null;
         if (this.lockedEnemy && this.lockedEnemy.alive) {
             targetChar = this.lockedEnemy.word[this.lockedLetterIndex];

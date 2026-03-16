@@ -13,35 +13,36 @@ const LevelsData = {
 
     MINOR_LEVEL_COUNT: 20, // 每个大级别的小级数量
 
-    // Boss 配置表：boss1a ~ boss3d（每级4个Boss，血量大幅提升）
+    // Boss 配置表：boss1a ~ boss3d（每级4个Boss）
+    // 难度平缓：初级超级友好，中级轻松愉快，高级适度挑战
     BOSS_TABLE: {
-        // 初级 Boss（4个，逐步增强）
-        boss1a: { name: '字母守卫', texture: 'boss1', hp: 12, wordType: 'letter', scale: 0.35,
-                  bulletInterval: 4000, bulletSpeed: 60, bulletCount: 1, powerupChance: 0.35 },
-        boss1b: { name: '字母队长', texture: 'boss1', hp: 16, wordType: 'letter', scale: 0.35,
-                  bulletInterval: 3500, bulletSpeed: 70, bulletCount: 1, powerupChance: 0.30 },
-        boss1c: { name: '字母将军', texture: 'boss1', hp: 20, wordType: 'letter', scale: 0.38,
-                  bulletInterval: 3000, bulletSpeed: 80, bulletCount: 2, powerupChance: 0.28 },
-        boss1d: { name: '字母大王', texture: 'boss1', hp: 25, wordType: 'letter', scale: 0.40,
-                  bulletInterval: 2500, bulletSpeed: 90, bulletCount: 2, powerupChance: 0.25 },
-        // 中级 Boss（4个）
-        boss2a: { name: '单词猎手', texture: 'boss2', hp: 18, wordType: 'short', scale: 0.30,
-                  bulletInterval: 3500, bulletSpeed: 70, bulletCount: 1, powerupChance: 0.30 },
-        boss2b: { name: '单词骑士', texture: 'boss2', hp: 24, wordType: 'short', scale: 0.30,
-                  bulletInterval: 3000, bulletSpeed: 80, bulletCount: 2, powerupChance: 0.28 },
-        boss2c: { name: '单词领主', texture: 'boss2', hp: 30, wordType: 'short', scale: 0.33,
-                  bulletInterval: 2500, bulletSpeed: 90, bulletCount: 2, powerupChance: 0.25 },
-        boss2d: { name: '单词霸主', texture: 'boss2', hp: 38, wordType: 'short', scale: 0.35,
-                  bulletInterval: 2000, bulletSpeed: 100, bulletCount: 3, powerupChance: 0.22 },
-        // 高级 Boss（4个）
-        boss3a: { name: '键盘刺客', texture: 'boss3', hp: 25, wordType: 'long', scale: 0.28,
-                  bulletInterval: 3000, bulletSpeed: 80, bulletCount: 2, powerupChance: 0.28 },
-        boss3b: { name: '键盘战神', texture: 'boss3', hp: 32, wordType: 'long', scale: 0.30,
-                  bulletInterval: 2500, bulletSpeed: 90, bulletCount: 2, powerupChance: 0.25 },
-        boss3c: { name: '键盘暴君', texture: 'boss3', hp: 40, wordType: 'long', scale: 0.32,
-                  bulletInterval: 2000, bulletSpeed: 100, bulletCount: 3, powerupChance: 0.22 },
-        boss3d: { name: '键盘魔王', texture: 'boss3', hp: 50, wordType: 'long', scale: 0.35,
-                  bulletInterval: 1800, bulletSpeed: 110, bulletCount: 3, powerupChance: 0.20 }
+        // 初级 Boss（4个，超级友好，新手也能轻松击败）
+        boss1a: { name: '字母守卫', texture: 'boss1', hp: 4,  wordType: 'letter', scale: 0.35,
+                  bulletInterval: 8000, bulletSpeed: 20, bulletCount: 1, powerupChance: 0.60 },
+        boss1b: { name: '字母队长', texture: 'boss1', hp: 5,  wordType: 'letter', scale: 0.35,
+                  bulletInterval: 7500, bulletSpeed: 22, bulletCount: 1, powerupChance: 0.55 },
+        boss1c: { name: '字母将军', texture: 'boss1', hp: 6,  wordType: 'letter', scale: 0.38,
+                  bulletInterval: 7000, bulletSpeed: 25, bulletCount: 1, powerupChance: 0.50 },
+        boss1d: { name: '字母大王', texture: 'boss1', hp: 8,  wordType: 'letter', scale: 0.40,
+                  bulletInterval: 6500, bulletSpeed: 28, bulletCount: 1, powerupChance: 0.45 },
+        // 中级 Boss（4个，轻松愉快）
+        boss2a: { name: '单词猎手', texture: 'boss2', hp: 8,  wordType: 'short', scale: 0.30,
+                  bulletInterval: 6000, bulletSpeed: 35, bulletCount: 1, powerupChance: 0.45 },
+        boss2b: { name: '单词骑士', texture: 'boss2', hp: 10, wordType: 'short', scale: 0.30,
+                  bulletInterval: 5500, bulletSpeed: 38, bulletCount: 1, powerupChance: 0.42 },
+        boss2c: { name: '单词领主', texture: 'boss2', hp: 13, wordType: 'short', scale: 0.33,
+                  bulletInterval: 5000, bulletSpeed: 42, bulletCount: 1, powerupChance: 0.40 },
+        boss2d: { name: '单词霸主', texture: 'boss2', hp: 16, wordType: 'short', scale: 0.35,
+                  bulletInterval: 4500, bulletSpeed: 45, bulletCount: 2, powerupChance: 0.38 },
+        // 高级 Boss（4个，适度挑战，不再压迫感过强）
+        boss3a: { name: '键盘刺客', texture: 'boss3', hp: 12, wordType: 'long', scale: 0.28,
+                  bulletInterval: 5500, bulletSpeed: 40, bulletCount: 1, powerupChance: 0.42 },
+        boss3b: { name: '键盘战神', texture: 'boss3', hp: 16, wordType: 'long', scale: 0.30,
+                  bulletInterval: 5000, bulletSpeed: 45, bulletCount: 1, powerupChance: 0.38 },
+        boss3c: { name: '键盘暴君', texture: 'boss3', hp: 20, wordType: 'long', scale: 0.32,
+                  bulletInterval: 4500, bulletSpeed: 50, bulletCount: 2, powerupChance: 0.35 },
+        boss3d: { name: '键盘魔王', texture: 'boss3', hp: 25, wordType: 'long', scale: 0.35,
+                  bulletInterval: 4000, bulletSpeed: 55, bulletCount: 2, powerupChance: 0.32 }
     },
 
     // ============================================
