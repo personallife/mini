@@ -37,13 +37,16 @@ class GameScene extends Phaser.Scene {
         this.boss = null;           // Boss 对象
         this.bossHP = 0;
         this.bossMaxHP = 0;
-        this.bossEnraged = false;   // 狂暴阶段
+        this.bossEnraged = false;   // 狂暴阶段（<50%血量）
+        this.bossFinalForm = false; // 最终形态（<25%血量）
         this.bossWord = null;       // Boss 当前单词
         this.bossTypedIndex = 0;    // Boss 已输入索引
         this.bossHitsNeeded = 0;
         this.bossHitsLanded = 0;
         this.bossActive = false;
-        this.bossSpawnTimer = null;
+        this.bossBullets = [];       // Boss 子弹列表
+        this.bossBulletTimer = 0;    // Boss 射击计时器
+        this.bossMovementPhase = 0;  // Boss 左右移动相位
 
         // Beta: 道具系统状态
         this.powerups = [];              // 活跃道具列表
@@ -158,6 +161,7 @@ class GameScene extends Phaser.Scene {
         // Beta: 更新 Boss
         if (this.bossActive && this.boss) {
             this.updateBoss(delta);
+            this.updateBossBullets(delta);
         }
 
         // Beta: 更新道具
@@ -1293,7 +1297,14 @@ class GameScene extends Phaser.Scene {
         this.bossHP = cfg.hp;
         this.bossHitsNeeded = cfg.hp;
         this.bossHitsLanded = 0;
+        this.bossBullets = [];
+        this.bossBulletTimer = 0;
+        this.bossMovementPhase = 0;
 
+        // \u6e05\u9664\u6240\u6709\u666e\u901a\u654c\u673a
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+            this.removeEnemy(this.enemies[i], i, false);
+        }
         // \u505c\u6b62\u666e\u901a\u654c\u673a\u751f\u6210
         if (this.spawnTimer) this.spawnTimer.destroy();
 
@@ -1305,13 +1316,23 @@ class GameScene extends Phaser.Scene {
             font: 'bold 22px Arial', fill: '#ff4444', stroke: '#000', strokeThickness: 3
         }).setOrigin(0.5).setDepth(55).setAlpha(0);
 
-        // Boss \u8840\u91cf\u6761\u80cc\u666f
+        // Boss \u8840\u91cf\u6761\u80cc\u666f\uff08\u5e26\u523b\u5ea6\u7ebf\uff09
         const hpBarBg = this.add.graphics().setDepth(54);
         hpBarBg.fillStyle(0x333333, 0.8);
         hpBarBg.fillRoundedRect(this.gameWidth / 2 - 120, 45, 240, 16, 4);
+        hpBarBg.lineStyle(1, 0x666666, 0.6);
+        for (let qi = 1; qi < 4; qi++) {
+            const sx = this.gameWidth / 2 - 118 + 236 * (qi / 4);
+            hpBarBg.lineBetween(sx, 47, sx, 59);
+        }
 
         // Boss \u8840\u91cf\u6761
         const hpBar = this.add.graphics().setDepth(55);
+
+        // Boss HP \u6570\u503c\u6587\u5b57
+        const hpText = this.add.text(this.gameWidth / 2, 53, `${cfg.hp}/${cfg.hp}`, {
+            font: 'bold 10px Arial', fill: '#ffffff', stroke: '#000', strokeThickness: 2
+        }).setOrigin(0.5).setDepth(56).setAlpha(0);
 
         // Boss \u5355\u8bcd\u6587\u672c
         const bossWordText = this.add.text(this.gameWidth / 2, 0, '', {
@@ -1330,6 +1351,7 @@ class GameScene extends Phaser.Scene {
             nameText: bossNameText,
             hpBarBg: hpBarBg,
             hpBar: hpBar,
+            hpText: hpText,
             wordText: bossWordText,
             typedText: bossTypedText,
             config: cfg,
@@ -1351,15 +1373,18 @@ class GameScene extends Phaser.Scene {
             onComplete: () => {
                 this.bossActive = true;
                 bossNameText.setAlpha(1);
+                hpText.setAlpha(1);
                 this.updateBossHPBar();
                 this.generateBossWord();
 
-                // \u5f00\u59cb\u751f\u6210\u5c0f\u654c\u673a
-                this.bossSpawnTimer = this.time.addEvent({
-                    delay: cfg.minionInterval,
-                    callback: () => this.spawnBossMinion(),
-                    callbackScope: this,
-                    loop: true
+                // \u663e\u793a "BOSS\u6218" \u63d0\u793a
+                const bossAlert = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 40, '\u2694\ufe0f BOSS \u6218 \u2694\ufe0f', {
+                    font: 'bold 32px Arial', fill: '#ff4444',
+                    stroke: '#000', strokeThickness: 4
+                }).setOrigin(0.5).setDepth(100).setAlpha(0);
+                this.tweens.add({
+                    targets: bossAlert, alpha: 1, duration: 300, yoyo: true,
+                    hold: 800, onComplete: () => bossAlert.destroy()
                 });
             }
         });
@@ -1391,27 +1416,134 @@ class GameScene extends Phaser.Scene {
         const color = ratio > 0.5 ? 0xff4444 : ratio > 0.25 ? 0xff8800 : 0xff0000;
         hpBar.fillStyle(color, 1);
         hpBar.fillRoundedRect(this.gameWidth / 2 - 118, 47, 236 * ratio, 12, 3);
-    }
-
-    /**
-     * \u751f\u6210 Boss \u5c0f\u654c\u673a\u653b\u51fb\u6ce2
-     */
-    spawnBossMinion() {
-        if (this.isPaused || this.isGameOver || !this.bossActive) return;
-        const count = this.bossEnraged ? 3 : 2;
-        for (let i = 0; i < count; i++) {
-            this.time.delayedCall(i * 400, () => this.spawnEnemy());
+        // \u66f4\u65b0HP\u6570\u503c\u6587\u5b57
+        if (this.boss.hpText) {
+            this.boss.hpText.setText(`${this.bossHP}/${this.bossMaxHP}`);
         }
     }
 
     /**
-     * \u66f4\u65b0 Boss (\u6bcf\u5e27)
+     * Boss \u53d1\u5c04\u5b50\u5f39\uff08\u5e26\u5b57\u6bcd\uff0c\u73a9\u5bb6\u9700\u8f93\u5165\u62b5\u6d88\uff09
+     */
+    fireBossBullet() {
+        if (this.isPaused || this.isGameOver || !this.bossActive || !this.boss) return;
+        const cfg = this.boss.config;
+        const count = this.bossFinalForm ? cfg.bulletCount + 1 : (this.bossEnraged ? cfg.bulletCount : Math.max(1, cfg.bulletCount - 1));
+        const bSpeed = this.bossFinalForm ? cfg.bulletSpeed * 1.3 : (this.bossEnraged ? cfg.bulletSpeed * 1.15 : cfg.bulletSpeed);
+
+        for (let i = 0; i < count; i++) {
+            this.time.delayedCall(i * 300, () => {
+                if (!this.bossActive || !this.boss) return;
+                // \u968f\u673a\u751f\u6210\u4e00\u4e2a\u5b57\u6bcd
+                const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26)).toLowerCase();
+                // \u5b50\u5f39\u4f4d\u7f6e\uff1aBoss\u5e95\u90e8\u968f\u673a\u504f\u79fb
+                const bx = this.boss.x + Phaser.Math.Between(-40, 40);
+                const by = this.boss.y + (this.boss.sprite.displayHeight / 2);
+                // \u7784\u51c6\u73a9\u5bb6\u65b9\u5411 + \u968f\u673a\u504f\u79fb
+                const px = this.player ? this.player.x : this.gameWidth / 2;
+                const py = this.player ? this.player.y : this.gameHeight - 60;
+                const angle = Math.atan2(py - by, px - bx) + Phaser.Math.FloatBetween(-0.2, 0.2);
+                const vx = Math.cos(angle) * bSpeed;
+                const vy = Math.sin(angle) * bSpeed;
+
+                // \u521b\u5efa\u5b50\u5f39\u7cbe\u7075
+                const bulletSprite = this.add.circle(bx, by, 10, 0xff3333, 0.9).setDepth(20);
+                // \u5b57\u6bcd\u6587\u672c
+                const bulletText = this.add.text(bx, by, letter, {
+                    font: 'bold 14px Arial', fill: '#ffffff', stroke: '#660000', strokeThickness: 2
+                }).setOrigin(0.5).setDepth(21);
+
+                this.bossBullets.push({
+                    x: bx, y: by, vx: vx, vy: vy,
+                    letter: letter, sprite: bulletSprite, text: bulletText, alive: true
+                });
+
+                // \u53d1\u5c04\u58f0\u97f3
+                SoundManager.playShoot();
+            });
+        }
+    }
+
+    /**
+     * \u66f4\u65b0 Boss \u5b50\u5f39
+     */
+    updateBossBullets(delta) {
+        const dt = delta / 1000;
+        for (let i = this.bossBullets.length - 1; i >= 0; i--) {
+            const b = this.bossBullets[i];
+            if (!b.alive) continue;
+            b.x += b.vx * dt;
+            b.y += b.vy * dt;
+            b.sprite.setPosition(b.x, b.y);
+            b.text.setPosition(b.x, b.y);
+
+            // \u78b0\u5230\u73a9\u5bb6\u533a\u57df\uff08\u5e95\u90e8\uff09
+            if (this.player && Math.abs(b.x - this.player.x) < 40 && Math.abs(b.y - this.player.y) < 40) {
+                b.alive = false;
+                b.sprite.destroy();
+                b.text.destroy();
+                this.bossBullets.splice(i, 1);
+                this.loseLife();
+                continue;
+            }
+
+            // \u8d85\u51fa\u5c4f\u5e55
+            if (b.y > this.gameHeight + 20 || b.y < -20 || b.x < -20 || b.x > this.gameWidth + 20) {
+                b.alive = false;
+                b.sprite.destroy();
+                b.text.destroy();
+                this.bossBullets.splice(i, 1);
+            }
+        }
+    }
+
+    /**
+     * \u73a9\u5bb6\u8f93\u5165\u5b57\u6bcd\u62b5\u6d88 Boss \u5b50\u5f39
+     */
+    tryDestroyBossBullet(key) {
+        for (let i = this.bossBullets.length - 1; i >= 0; i--) {
+            const b = this.bossBullets[i];
+            if (b.alive && b.letter === key) {
+                b.alive = false;
+                // \u5c0f\u7206\u70b8\u6548\u679c
+                this.tweens.add({
+                    targets: [b.sprite, b.text],
+                    alpha: 0, scaleX: 2, scaleY: 2, duration: 200,
+                    onComplete: () => { b.sprite.destroy(); b.text.destroy(); }
+                });
+                this.bossBullets.splice(i, 1);
+                this.score += 5;
+                this.updateScoreText();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * \u66f4\u65b0 Boss (\u6bcf\u5e27) - \u5de6\u53f3\u79fb\u52a8 + \u5b50\u5f39\u53d1\u5c04
      */
     updateBoss(delta) {
         if (!this.boss) return;
+        const dt = delta / 1000;
         const b = this.boss;
+        const cfg = b.config;
+
+        // Boss \u5de6\u53f3\u7f13\u6162\u79fb\u52a8
+        this.bossMovementPhase += dt * (this.bossEnraged ? 1.5 : 0.8);
+        const moveRange = this.bossEnraged ? 120 : 80;
+        b.x = this.gameWidth / 2 + Math.sin(this.bossMovementPhase) * moveRange;
+        b.sprite.setPosition(b.x, b.sprite.y);
         b.wordText.setPosition(b.x, b.sprite.y + b.sprite.displayHeight / 2 + 20);
         b.typedText.setPosition(b.x - b.wordText.width / 2, b.wordText.y);
+
+        // Boss \u5b50\u5f39\u53d1\u5c04\u8ba1\u65f6
+        const interval = this.bossFinalForm ? cfg.bulletInterval * 0.6 : (this.bossEnraged ? cfg.bulletInterval * 0.75 : cfg.bulletInterval);
+        this.bossBulletTimer += delta;
+        if (this.bossBulletTimer >= interval) {
+            this.bossBulletTimer = 0;
+            this.fireBossBullet();
+        }
     }
 
     /**
@@ -1429,21 +1561,45 @@ class GameScene extends Phaser.Scene {
         });
         this.createExplosion(this.boss.x + Phaser.Math.Between(-40, 40), this.boss.y + Phaser.Math.Between(-20, 20));
 
+        // Boss\u53d7\u4f24\u65f6\u6982\u7387\u6389\u843d\u9053\u5177\uff08\u56de\u8840/\u62a4\u76fe\uff09
+        const dropChance = this.boss.config.powerupChance || 0.25;
+        if (Math.random() < dropChance) {
+            this.spawnBossPowerup(this.boss.x + Phaser.Math.Between(-60, 60), this.boss.y + 40);
+        }
+
         // \u72c2\u66b4\u9636\u6bb5\u68c0\u67e5 (50%)
         if (!this.bossEnraged && this.bossHP <= this.bossMaxHP * 0.5) {
             this.bossEnraged = true;
             this.boss.nameText.setText(`\u2620\ufe0f ${this.boss.config.name} \u203c\ufe0f\u72c2\u66b4`);
             this.boss.nameText.setColor('#ff0000');
-            // \u52a0\u5feb\u5c0f\u654c\u673a\u751f\u6210
-            if (this.bossSpawnTimer) this.bossSpawnTimer.destroy();
-            this.bossSpawnTimer = this.time.addEvent({
-                delay: this.boss.config.minionInterval * 0.6,
-                callback: () => this.spawnBossMinion(),
-                callbackScope: this,
-                loop: true
-            });
-            // \u5c4f\u5e55\u6296\u52a8
             this.cameras.main.shake(500, 0.01);
+            // \u72c2\u66b4\u63d0\u793a
+            const rageText = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, '\u203c\ufe0f Boss \u72c2\u66b4\u4e86\uff01', {
+                font: 'bold 26px Arial', fill: '#ff4400',
+                stroke: '#000', strokeThickness: 3
+            }).setOrigin(0.5).setDepth(100).setAlpha(0);
+            this.tweens.add({
+                targets: rageText, alpha: 1, duration: 200, yoyo: true,
+                hold: 600, onComplete: () => rageText.destroy()
+            });
+        }
+
+        // \u6700\u7ec8\u5f62\u6001\u68c0\u67e5 (25%)
+        if (!this.bossFinalForm && this.bossHP <= this.bossMaxHP * 0.25) {
+            this.bossFinalForm = true;
+            this.boss.nameText.setText(`\u2620\ufe0f ${this.boss.config.name} \u2620\ufe0f\u7edd\u5883`);
+            this.boss.nameText.setColor('#ff00ff');
+            this.boss.sprite.setTint(0xff4444);
+            this.cameras.main.shake(800, 0.02);
+            // \u7edd\u5883\u63d0\u793a
+            const finalText = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, '\u2620\ufe0f \u7edd\u5883\u6a21\u5f0f\uff01', {
+                font: 'bold 28px Arial', fill: '#ff00ff',
+                stroke: '#000', strokeThickness: 4
+            }).setOrigin(0.5).setDepth(100).setAlpha(0);
+            this.tweens.add({
+                targets: finalText, alpha: 1, duration: 200, yoyo: true,
+                hold: 800, onComplete: () => finalText.destroy()
+            });
         }
 
         if (this.bossHP <= 0) {
@@ -1457,11 +1613,40 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
+     * Boss\u6218\u4e13\u7528\u9053\u5177\u6389\u843d\uff08\u53ea\u6389\u56de\u8840\u548c\u62a4\u76fe\uff09
+     */
+    spawnBossPowerup(x, y) {
+        const types = ['heal', 'heal', 'shield', 'shield', 'heal'];
+        const type = Phaser.Utils.Array.GetRandom(types);
+        const textureMap = {
+            shield: 'powerup_shield', heal: 'powerup_heal'
+        };
+        const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26)).toLowerCase();
+        const sprite = this.add.image(x, y, textureMap[type]).setScale(0.35).setDepth(15);
+        const letterText = this.add.text(x, y + 30, letter, {
+            font: 'bold 16px Arial', fill: '#ffff00',
+            stroke: '#333', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(16);
+
+        this.powerups.push({
+            x: x, y: y, letter: letter, type: type,
+            sprite: sprite, letterText: letterText,
+            speed: 35, alive: true
+        });
+    }
+
+    /**
      * Boss \u88ab\u51fb\u8d25
      */
     onBossDefeated() {
         this.bossActive = false;
-        if (this.bossSpawnTimer) this.bossSpawnTimer.destroy();
+        // \u6e05\u9664\u6240\u6709Boss\u5b50\u5f39
+        for (let i = this.bossBullets.length - 1; i >= 0; i--) {
+            const b = this.bossBullets[i];
+            if (b.sprite) b.sprite.destroy();
+            if (b.text) b.text.destroy();
+        }
+        this.bossBullets = [];
 
         // \u5927\u578b\u7206\u70b8\u52a8\u753b
         const cx = this.boss.x, cy = this.boss.y;
@@ -1487,8 +1672,25 @@ class GameScene extends Phaser.Scene {
             this.removeEnemy(this.enemies[i], i, true);
         }
 
-        // 2\u79d2\u540e\u901a\u5173
-        this.time.delayedCall(2000, () => {
+        // \u80dc\u5229\u63d0\u793a + \u989d\u5916\u5956\u52b1
+        this.time.delayedCall(800, () => {
+            const bonusScore = this.bossMaxHP * 50;
+            this.score += bonusScore;
+            this.updateScoreText();
+            const victoryText = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 40, '\ud83c\udfc6 BOSS \u51fb\u8d25\uff01', {
+                font: 'bold 36px Arial', fill: '#ffcc00',
+                stroke: '#000', strokeThickness: 4
+            }).setOrigin(0.5).setDepth(100).setAlpha(0);
+            const bonusText = this.add.text(this.gameWidth / 2, this.gameHeight / 2 + 10, `+${bonusScore} \u5956\u52b1\u5206\uff01`, {
+                font: 'bold 20px Arial', fill: '#88ff88',
+                stroke: '#003300', strokeThickness: 3
+            }).setOrigin(0.5).setDepth(100).setAlpha(0);
+            this.tweens.add({ targets: victoryText, alpha: 1, y: this.gameHeight / 2 - 60, duration: 600 });
+            this.tweens.add({ targets: bonusText, alpha: 1, duration: 600, delay: 300 });
+        });
+
+        // 3\u79d2\u540e\u901a\u5173
+        this.time.delayedCall(3000, () => {
             this.onLevelComplete();
         });
     }

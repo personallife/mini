@@ -1,7 +1,7 @@
 /**
  * 关卡数据模块
  * 定义3大级别 × 20小级 = 60个关卡的配置
- * Boss关：每隔3关一个Boss（第3/6/9/12/15/18关）
+ * Boss关：每隔5关一个Boss（第5/10/15/20关）
  */
 const LevelsData = {
     // 大级别名称
@@ -13,35 +13,41 @@ const LevelsData = {
 
     MINOR_LEVEL_COUNT: 20, // 每个大级别的小级数量
 
-    // Boss 配置表：boss1a ~ boss3f
+    // Boss 配置表：boss1a ~ boss3d（每级4个Boss，血量大幅提升）
     BOSS_TABLE: {
-        // 初级 Boss（6个，逐步增强）
-        boss1a: { name: '字母小兵', texture: 'boss1', hp: 3, wordType: 'letter', scale: 0.35, minionInterval: 8000 },
-        boss1b: { name: '字母卫兵', texture: 'boss1', hp: 4, wordType: 'letter', scale: 0.35, minionInterval: 7000 },
-        boss1c: { name: '字母队长', texture: 'boss1', hp: 5, wordType: 'letter', scale: 0.35, minionInterval: 6500 },
-        boss1d: { name: '字母将军', texture: 'boss1', hp: 6, wordType: 'letter', scale: 0.35, minionInterval: 6000 },
-        boss1e: { name: '字母统帅', texture: 'boss1', hp: 7, wordType: 'letter', scale: 0.35, minionInterval: 5500 },
-        boss1f: { name: '字母大王', texture: 'boss1', hp: 8, wordType: 'letter', scale: 0.35, minionInterval: 5000 },
-        // 中级 Boss（6个）
-        boss2a: { name: '单词新兵', texture: 'boss2', hp: 5, wordType: 'short', scale: 0.3, minionInterval: 7000 },
-        boss2b: { name: '单词猎手', texture: 'boss2', hp: 6, wordType: 'short', scale: 0.3, minionInterval: 6500 },
-        boss2c: { name: '单词骑士', texture: 'boss2', hp: 7, wordType: 'short', scale: 0.3, minionInterval: 6000 },
-        boss2d: { name: '单词法师', texture: 'boss2', hp: 8, wordType: 'short', scale: 0.3, minionInterval: 5500 },
-        boss2e: { name: '单词领主', texture: 'boss2', hp: 10, wordType: 'short', scale: 0.3, minionInterval: 5000 },
-        boss2f: { name: '单词霸主', texture: 'boss2', hp: 12, wordType: 'short', scale: 0.3, minionInterval: 4500 },
-        // 高级 Boss（6个）
-        boss3a: { name: '键盘学徒', texture: 'boss3', hp: 7, wordType: 'long', scale: 0.28, minionInterval: 6000 },
-        boss3b: { name: '键盘刺客', texture: 'boss3', hp: 8, wordType: 'long', scale: 0.28, minionInterval: 5500 },
-        boss3c: { name: '键盘术士', texture: 'boss3', hp: 10, wordType: 'long', scale: 0.28, minionInterval: 5000 },
-        boss3d: { name: '键盘战神', texture: 'boss3', hp: 12, wordType: 'long', scale: 0.28, minionInterval: 4500 },
-        boss3e: { name: '键盘暴君', texture: 'boss3', hp: 14, wordType: 'long', scale: 0.28, minionInterval: 4000 },
-        boss3f: { name: '键盘魔王', texture: 'boss3', hp: 16, wordType: 'long', scale: 0.28, minionInterval: 3500 }
+        // 初级 Boss（4个，逐步增强）
+        boss1a: { name: '字母守卫', texture: 'boss1', hp: 12, wordType: 'letter', scale: 0.35,
+                  bulletInterval: 4000, bulletSpeed: 60, bulletCount: 1, powerupChance: 0.35 },
+        boss1b: { name: '字母队长', texture: 'boss1', hp: 16, wordType: 'letter', scale: 0.35,
+                  bulletInterval: 3500, bulletSpeed: 70, bulletCount: 1, powerupChance: 0.30 },
+        boss1c: { name: '字母将军', texture: 'boss1', hp: 20, wordType: 'letter', scale: 0.38,
+                  bulletInterval: 3000, bulletSpeed: 80, bulletCount: 2, powerupChance: 0.28 },
+        boss1d: { name: '字母大王', texture: 'boss1', hp: 25, wordType: 'letter', scale: 0.40,
+                  bulletInterval: 2500, bulletSpeed: 90, bulletCount: 2, powerupChance: 0.25 },
+        // 中级 Boss（4个）
+        boss2a: { name: '单词猎手', texture: 'boss2', hp: 18, wordType: 'short', scale: 0.30,
+                  bulletInterval: 3500, bulletSpeed: 70, bulletCount: 1, powerupChance: 0.30 },
+        boss2b: { name: '单词骑士', texture: 'boss2', hp: 24, wordType: 'short', scale: 0.30,
+                  bulletInterval: 3000, bulletSpeed: 80, bulletCount: 2, powerupChance: 0.28 },
+        boss2c: { name: '单词领主', texture: 'boss2', hp: 30, wordType: 'short', scale: 0.33,
+                  bulletInterval: 2500, bulletSpeed: 90, bulletCount: 2, powerupChance: 0.25 },
+        boss2d: { name: '单词霸主', texture: 'boss2', hp: 38, wordType: 'short', scale: 0.35,
+                  bulletInterval: 2000, bulletSpeed: 100, bulletCount: 3, powerupChance: 0.22 },
+        // 高级 Boss（4个）
+        boss3a: { name: '键盘刺客', texture: 'boss3', hp: 25, wordType: 'long', scale: 0.28,
+                  bulletInterval: 3000, bulletSpeed: 80, bulletCount: 2, powerupChance: 0.28 },
+        boss3b: { name: '键盘战神', texture: 'boss3', hp: 32, wordType: 'long', scale: 0.30,
+                  bulletInterval: 2500, bulletSpeed: 90, bulletCount: 2, powerupChance: 0.25 },
+        boss3c: { name: '键盘暴君', texture: 'boss3', hp: 40, wordType: 'long', scale: 0.32,
+                  bulletInterval: 2000, bulletSpeed: 100, bulletCount: 3, powerupChance: 0.22 },
+        boss3d: { name: '键盘魔王', texture: 'boss3', hp: 50, wordType: 'long', scale: 0.35,
+                  bulletInterval: 1800, bulletSpeed: 110, bulletCount: 3, powerupChance: 0.20 }
     },
 
     // ============================================
     // 60个关卡配置：3大级别 × 20小级
-    // 难度曲线更平缓，从1~20缓和提升
-    // Boss关：第3/6/9/12/15/18关（minor 2/5/8/11/14/17）
+    // 难度曲线平缓，从1~20缓和提升
+    // Boss关：第5/10/15/20关（每5关一个Boss）
     // ============================================
     levels: [],
 
@@ -52,29 +58,28 @@ const LevelsData = {
     init() {
         this.levels = [];
         // ---- 初级 Easy（单字母，20关）----
-        const easyBosses = ['boss1a', 'boss1b', 'boss1c', 'boss1d', 'boss1e', 'boss1f'];
+        const easyBosses = ['boss1a', 'boss1b', 'boss1c', 'boss1d'];
         for (let i = 0; i < 20; i++) {
-            // 使用 easeIn 缓动函数让前半段更平缓，后半段适当加速
             const t = i / 19; // 0~1 线性
             const tEase = t * t;  // 二次缓入，前期更平缓
-            const isBoss = (i + 1) % 3 === 0; // 第3/6/9/12/15/18关
-            const bossIdx = Math.floor((i + 1) / 3) - 1;
+            const isBoss = (i + 1) % 5 === 0; // 第5/10/15/20关
+            const bossIdx = Math.floor((i + 1) / 5) - 1;
             const normalRatio = Math.max(0.5, 1 - tEase * 0.5);
             const fastRatio = Math.min(0.4, tEase * 0.5);
             const level = {
                 major: 0, minor: i,
                 name: `初级 - 第${i + 1}关`,
                 wordType: 'letter',
-                speed: Math.round(15 + tEase * 40),            // 15→55（起步更慢）
+                speed: Math.round(15 + tEase * 40),            // 15→55
                 spawnInterval: Math.round(5000 - tEase * 2800), // 5000→2200
                 maxEnemies: Math.round(2 + tEase * 4),          // 2→6
-                targetKills: Math.round(10 + t * 30),           // 10→40（内容更多）
+                targetKills: Math.round(10 + t * 30),           // 10→40
                 lives: 5,
                 showKeyboard: true,
-                powerupRate: +(0.15 + t * 0.10).toFixed(2),     // 15%→25% 道具掉率
+                powerupRate: +(0.15 + t * 0.10).toFixed(2),     // 15%→25%
                 enemyTypes: { normal: +normalRatio.toFixed(2), fast: +fastRatio.toFixed(2) }
             };
-            if (isBoss && bossIdx >= 0 && bossIdx < 6) {
+            if (isBoss && bossIdx >= 0 && bossIdx < 4) {
                 level.isBoss = true;
                 level.boss = easyBosses[bossIdx];
             }
@@ -82,12 +87,12 @@ const LevelsData = {
         }
 
         // ---- 中级 Medium（短单词 3-4 字母，20关）----
-        const medBosses = ['boss2a', 'boss2b', 'boss2c', 'boss2d', 'boss2e', 'boss2f'];
+        const medBosses = ['boss2a', 'boss2b', 'boss2c', 'boss2d'];
         for (let i = 0; i < 20; i++) {
             const t = i / 19;
             const tEase = t * t;
-            const isBoss = (i + 1) % 3 === 0;
-            const bossIdx = Math.floor((i + 1) / 3) - 1;
+            const isBoss = (i + 1) % 5 === 0;
+            const bossIdx = Math.floor((i + 1) / 5) - 1;
             const normalR = Math.max(0.15, 0.7 - tEase * 0.55);
             const fastR = +(0.15 + tEase * 0.2).toFixed(2);
             const armorR = +(0.05 + tEase * 0.2).toFixed(2);
@@ -105,7 +110,7 @@ const LevelsData = {
                 powerupRate: +(0.18 + t * 0.10).toFixed(2),     // 18%→28%
                 enemyTypes: { normal: +normalR.toFixed(2), fast: fastR, armored: armorR, zigzag: zigR }
             };
-            if (isBoss && bossIdx >= 0 && bossIdx < 6) {
+            if (isBoss && bossIdx >= 0 && bossIdx < 4) {
                 level.isBoss = true;
                 level.boss = medBosses[bossIdx];
             }
@@ -113,12 +118,12 @@ const LevelsData = {
         }
 
         // ---- 高级 Hard（长单词 5+ 字母，20关）----
-        const hardBosses = ['boss3a', 'boss3b', 'boss3c', 'boss3d', 'boss3e', 'boss3f'];
+        const hardBosses = ['boss3a', 'boss3b', 'boss3c', 'boss3d'];
         for (let i = 0; i < 20; i++) {
             const t = i / 19;
             const tEase = t * t;
-            const isBoss = (i + 1) % 3 === 0;
-            const bossIdx = Math.floor((i + 1) / 3) - 1;
+            const isBoss = (i + 1) % 5 === 0;
+            const bossIdx = Math.floor((i + 1) / 5) - 1;
             const normalR = Math.max(0.05, 0.35 - tEase * 0.3);
             const fastR = +(0.2 + tEase * 0.2).toFixed(2);
             const armorR = +(0.2 + tEase * 0.15).toFixed(2);
@@ -136,7 +141,7 @@ const LevelsData = {
                 powerupRate: +(0.20 + t * 0.12).toFixed(2),     // 20%→32%
                 enemyTypes: { normal: +normalR.toFixed(2), fast: fastR, armored: armorR, zigzag: zigR }
             };
-            if (isBoss && bossIdx >= 0 && bossIdx < 6) {
+            if (isBoss && bossIdx >= 0 && bossIdx < 4) {
                 level.isBoss = true;
                 level.boss = hardBosses[bossIdx];
             }
