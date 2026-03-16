@@ -220,12 +220,14 @@ class LevelSelectScene extends Phaser.Scene {
 
     createStarBackground() {
         const { width, height } = this.cameras.main;
+        const theme = ThemesData.getCurrentTheme();
+        this.cameras.main.setBackgroundColor(theme.bgColor);
         for (let i = 0; i < 50; i++) {
             const x = Phaser.Math.Between(0, width);
             const y = Phaser.Math.Between(0, height);
             const size = Phaser.Math.FloatBetween(0.5, 1.5);
             const alpha = Phaser.Math.FloatBetween(0.1, 0.5);
-            this.add.circle(x, y, size, 0xffffff, alpha);
+            this.add.circle(x, y, size, theme.particleColor, alpha);
         }
     }
 }

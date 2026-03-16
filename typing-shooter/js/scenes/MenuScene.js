@@ -12,7 +12,10 @@ class MenuScene extends Phaser.Scene {
         // 初始化音效系统（需要用户首次交互后才能激活）
         SoundManager.init();
 
-        // 星空背景
+        // Beta: 播放主菜单BGM
+        SoundManager.startBGM('menu');
+
+        // 星空背景（Beta: 根据主题）
         this.createStarBackground();
 
         // 游戏标题
@@ -48,8 +51,8 @@ class MenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // 菜单按钮
-        const buttonY = 230;
-        const buttonGap = 55;
+        const buttonY = 220;
+        const buttonGap = 48;
 
         this.createButton(width / 2, buttonY, '🚀  开始战斗', '#00aaff', () => {
             // 从第一个未完成的关卡开始
@@ -68,8 +71,13 @@ class MenuScene extends Phaser.Scene {
             this.scene.start('WordLibScene');
         });
 
+        this.createButton(width / 2, buttonY + buttonGap * 4, '💾  存档管理', '#ff8844', () => {
+            SoundManager.stopBGM();
+            this.scene.start('SaveScene');
+        });
+
         // 操作说明
-        const helpY = 480;
+        const helpY = 470;
         this.add.text(width / 2, helpY, '— 操作说明 —', {
             font: 'bold 14px Arial',
             fill: '#6677aa'
@@ -87,7 +95,7 @@ class MenuScene extends Phaser.Scene {
         });
 
         // 底部版本信息
-        this.add.text(width / 2, height - 15, 'v1.0  |  Powered by Phaser.js', {
+        this.add.text(width / 2, height - 15, 'v2.0 Beta  |  Powered by Phaser.js', {
             font: '11px Arial',
             fill: '#334455'
         }).setOrigin(0.5);
@@ -98,12 +106,15 @@ class MenuScene extends Phaser.Scene {
      */
     createStarBackground() {
         const { width, height } = this.cameras.main;
+        const theme = ThemesData.getCurrentTheme();
+        this.cameras.main.setBackgroundColor(theme.bgColor);
+
         for (let i = 0; i < 80; i++) {
             const x = Phaser.Math.Between(0, width);
             const y = Phaser.Math.Between(0, height);
             const size = Phaser.Math.FloatBetween(0.5, 2);
             const alpha = Phaser.Math.FloatBetween(0.2, 0.8);
-            const star = this.add.circle(x, y, size, 0xffffff, alpha);
+            const star = this.add.circle(x, y, size, theme.particleColor, alpha);
             // 闪烁动画
             this.tweens.add({
                 targets: star,

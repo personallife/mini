@@ -18,12 +18,14 @@ class GameOverScene extends Phaser.Scene {
 
     create() {
         const { width, height } = this.cameras.main;
+        const theme = ThemesData.getCurrentTheme();
+        this.cameras.main.setBackgroundColor(theme.bgColor);
 
         // 星空背景
         for (let i = 0; i < 50; i++) {
             const x = Phaser.Math.Between(0, width);
             const y = Phaser.Math.Between(0, height);
-            this.add.circle(x, y, Phaser.Math.FloatBetween(0.5, 1.5), 0xffffff, Phaser.Math.FloatBetween(0.1, 0.5));
+            this.add.circle(x, y, Phaser.Math.FloatBetween(0.5, 1.5), theme.particleColor, Phaser.Math.FloatBetween(0.1, 0.5));
         }
 
         if (this.victory) {

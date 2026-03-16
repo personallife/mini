@@ -24,7 +24,8 @@ class CustomScene extends Phaser.Scene {
             maxEnemies: 5,
             lives: 5,
             showKeyboard: true,
-            wordLibrary: 'children'
+            wordLibrary: 'children',
+            soundEnabled: true
         };
     }
 
@@ -102,6 +103,17 @@ class CustomScene extends Phaser.Scene {
             { key: 'school', label: '课本词汇' },
             { key: 'custom', label: '自定义' }
         ], 'wordLibrary');
+        cy += gap;
+
+        // Beta: 主题选择
+        this.createThemeSelector(width / 2, cy);
+        cy += gap;
+
+        // Beta: 音效开关
+        this.createOptionSelector(width / 2, cy, '音效', [
+            { key: true, label: '开启' },
+            { key: false, label: '关闭' }
+        ], 'soundEnabled');
         cy += gap + 10;
 
         // 开始游戏按钮
@@ -242,6 +254,44 @@ class CustomScene extends Phaser.Scene {
 
             // 持久化
             CustomScene.saveParams(this.customParams);
+        });
+    }
+
+    /**
+     * Beta: 创建主题选择器
+     */
+    createThemeSelector(x, y) {
+        const leftX = x - 180;
+        this.add.text(leftX, y, '场景主题', {
+            font: 'bold 14px Arial', fill: '#aabbcc'
+        }).setOrigin(0, 0.5);
+
+        const themes = ThemesData.getAllThemes();
+        const currentTheme = ThemesData.getCurrentTheme();
+        const btnWidth = 80;
+        const totalWidth = themes.length * (btnWidth + 8);
+        const startX = x + 60 - totalWidth / 2;
+        const btnGroup = [];
+
+        themes.forEach((theme, i) => {
+            const bx = startX + i * (btnWidth + 8);
+            const isActive = currentTheme.key === theme.key;
+            const bg = this.add.graphics();
+            this.drawOptionBtn(bg, bx, y - 14, btnWidth, 28, isActive);
+            const text = this.add.text(bx + btnWidth / 2, y, theme.name, {
+                font: '13px Arial', fill: isActive ? '#ffffff' : '#889999'
+            }).setOrigin(0.5);
+            const zone = this.add.zone(bx + btnWidth / 2, y, btnWidth, 28).setInteractive({ useHandCursor: true });
+            btnGroup.push({ bg, text, theme, bx });
+            zone.on('pointerup', () => {
+                ThemesData.setTheme(theme.key);
+                btnGroup.forEach(b => {
+                    const active = theme.key === b.theme.key;
+                    b.bg.clear();
+                    this.drawOptionBtn(b.bg, b.bx, y - 14, btnWidth, 28, active);
+                    b.text.setColor(active ? '#ffffff' : '#889999');
+                });
+            });
         });
     }
 

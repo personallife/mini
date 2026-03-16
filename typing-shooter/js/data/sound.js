@@ -8,6 +8,9 @@ const SoundManager = {
     bgmEnabled: true,
     bgmOscillator: null,
     bgmGain: null,
+    _bgmNodes: [],
+    _bgmLfo: null,
+    _bgmLoopTimer: null,
 
     STORAGE_KEY: 'typing_shooter_sound',
 
@@ -228,47 +231,238 @@ const SoundManager = {
     },
 
     /**
-     * 开始背景音乐 - 简单的低频环境音
+     * Beta: 开始背景音乐（带场景类型参数）
+     * @param {string} type - 'menu' | 'battle' | 'boss'
      */
-    startBGM() {
-        if (!this.enabled || !this.bgmEnabled || !this.audioCtx || this.bgmOscillator) return;
+    startBGM(type) {
+        if (!this.enabled || !this.bgmEnabled || !this.audioCtx) return;
+        this.stopBGM();
         this.resume();
 
-        // 使用低频振荡器 + LFO 制造简单的环境氛围
-        this.bgmOscillator = this.audioCtx.createOscillator();
-        this.bgmGain = this.audioCtx.createGain();
-        const lfo = this.audioCtx.createOscillator();
-        const lfoGain = this.audioCtx.createGain();
+        const bgmType = type || 'battle';
+        this._bgmNodes = [];
 
-        this.bgmOscillator.type = 'sine';
-        this.bgmOscillator.frequency.setValueAtTime(80, this.audioCtx.currentTime);
-
-        lfo.type = 'sine';
-        lfo.frequency.setValueAtTime(0.3, this.audioCtx.currentTime);
-        lfoGain.gain.setValueAtTime(15, this.audioCtx.currentTime);
-
-        lfo.connect(lfoGain);
-        lfoGain.connect(this.bgmOscillator.frequency);
-
-        this.bgmGain.gain.setValueAtTime(0.03, this.audioCtx.currentTime);
-
-        this.bgmOscillator.connect(this.bgmGain);
-        this.bgmGain.connect(this.audioCtx.destination);
-
-        this.bgmOscillator.start();
-        lfo.start();
+        if (bgmType === 'menu') {
+            this._playMenuBGM();
+        } else if (bgmType === 'boss') {
+            this._playBossBGM();
+        } else {
+            this._playBattleBGM();
+        }
     },
 
     /**
-     * 停止背景音乐
+     * 主菜单BGM - 轻松明快的旋律
+     */
+    _playMenuBGM() {
+        // 主旋律音符：C5 E5 G5 C6 G5 E5 (循环)
+        const melody = [523, 659, 784, 1047, 784, 659];
+        const noteLen = 0.4;
+        const loopLen = melody.length * noteLen;
+
+        const scheduleLoop = () => {
+            if (!this.bgmEnabled || !this.audioCtx) return;
+            const now = this.audioCtx.currentTime;
+            melody.forEach((freq, i) => {
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + i * noteLen);
+                gain.gain.setValueAtTime(0, now + i * noteLen);
+                gain.gain.linearRampToValueAtTime(0.06, now + i * noteLen + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * noteLen + noteLen * 0.9);
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.start(now + i * noteLen);
+                osc.stop(now + i * noteLen + noteLen);
+                this._bgmNodes.push(osc);
+            });
+            this._bgmLoopTimer = setTimeout(() => scheduleLoop(), loopLen * 1000);
+        };
+        scheduleLoop();
+
+        // 低频pad
+        this._startPad(130, 0.025);
+    },
+
+    /**
+     * 战斗BGM - 有节奏感
+     */
+    _playBattleBGM() {
+        // 节奏bass循环
+        const bassNotes = [110, 110, 147, 131]; // A2 A2 D3 C3
+        const noteLen = 0.5;
+        const loopLen = bassNotes.length * noteLen;
+
+        const scheduleLoop = () => {
+            if (!this.bgmEnabled || !this.audioCtx) return;
+            const now = this.audioCtx.currentTime;
+            bassNotes.forEach((freq, i) => {
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + i * noteLen);
+                gain.gain.setValueAtTime(0, now + i * noteLen);
+                gain.gain.linearRampToValueAtTime(0.05, now + i * noteLen + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * noteLen + noteLen * 0.8);
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.start(now + i * noteLen);
+                osc.stop(now + i * noteLen + noteLen);
+                this._bgmNodes.push(osc);
+            });
+            this._bgmLoopTimer = setTimeout(() => scheduleLoop(), loopLen * 1000);
+        };
+        scheduleLoop();
+
+        // 低频环境pad
+        this._startPad(80, 0.02);
+    },
+
+    /**
+     * Boss战BGM - 紧张激烈
+     */
+    _playBossBGM() {
+        const bassNotes = [82, 87, 98, 87]; // E2 F2 G2 F2
+        const noteLen = 0.35;
+        const loopLen = bassNotes.length * noteLen;
+
+        const scheduleLoop = () => {
+            if (!this.bgmEnabled || !this.audioCtx) return;
+            const now = this.audioCtx.currentTime;
+            bassNotes.forEach((freq, i) => {
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, now + i * noteLen);
+                gain.gain.setValueAtTime(0, now + i * noteLen);
+                gain.gain.linearRampToValueAtTime(0.04, now + i * noteLen + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * noteLen + noteLen * 0.7);
+
+                const filter = this.audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(600, now);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.start(now + i * noteLen);
+                osc.stop(now + i * noteLen + noteLen);
+                this._bgmNodes.push(osc);
+            });
+            this._bgmLoopTimer = setTimeout(() => scheduleLoop(), loopLen * 1000);
+        };
+        scheduleLoop();
+
+        this._startPad(65, 0.03);
+    },
+
+    /**
+     * 低频环境pad音
+     */
+    _startPad(freq, vol) {
+        if (!this.audioCtx) return;
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        const lfo = this.audioCtx.createOscillator();
+        const lfoGain = this.audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(0.3, this.audioCtx.currentTime);
+        lfoGain.gain.setValueAtTime(10, this.audioCtx.currentTime);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        // 渐入
+        gain.gain.setValueAtTime(0, this.audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(vol, this.audioCtx.currentTime + 1.0);
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        osc.start();
+        lfo.start();
+
+        this.bgmOscillator = osc;
+        this.bgmGain = gain;
+        this._bgmLfo = lfo;
+        this._bgmNodes.push(osc, lfo);
+    },
+
+    /**
+     * 播放胜利旋律
+     */
+    playVictoryBGM() {
+        if (!this.enabled || !this.audioCtx) return;
+        this.stopBGM();
+        this.resume();
+
+        const melody = [523, 659, 784, 880, 1047]; // C E G A C6
+        melody.forEach((freq, i) => {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            osc.type = 'sine';
+            const t = this.audioCtx.currentTime + i * 0.2;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.12, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.5);
+        });
+    },
+
+    /**
+     * 播放失败旋律
+     */
+    playDefeatBGM() {
+        if (!this.enabled || !this.audioCtx) return;
+        this.stopBGM();
+        this.resume();
+
+        const melody = [440, 392, 349, 330, 262]; // A G F E C (下降)
+        melody.forEach((freq, i) => {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            osc.type = 'sine';
+            const t = this.audioCtx.currentTime + i * 0.25;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.10, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.6);
+        });
+    },
+
+    /**
+     * 停止背景音乐（带渐出）
      */
     stopBGM() {
-        if (this.bgmOscillator) {
+        // 停止循环定时器
+        if (this._bgmLoopTimer) {
+            clearTimeout(this._bgmLoopTimer);
+            this._bgmLoopTimer = null;
+        }
+        // 停止pad
+        if (this.bgmGain && this.audioCtx) {
             try {
-                this.bgmOscillator.stop();
-            } catch (e) {}
+                this.bgmGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.5);
+            } catch(e) {}
+        }
+        if (this.bgmOscillator) {
+            try { this.bgmOscillator.stop(this.audioCtx.currentTime + 0.6); } catch (e) {}
             this.bgmOscillator = null;
         }
+        if (this._bgmLfo) {
+            try { this._bgmLfo.stop(this.audioCtx.currentTime + 0.6); } catch (e) {}
+            this._bgmLfo = null;
+        }
         this.bgmGain = null;
+        this._bgmNodes = [];
     }
 };

@@ -4,6 +4,106 @@
  */
 const ProgressData = {
     STORAGE_KEY: 'typing_shooter_progress',
+    SAVE_SLOTS_KEY: 'typing_shooter_saves',
+    ACTIVE_SLOT_KEY: 'typing_shooter_active_slot',
+
+    // Beta: 存档系统
+    getActiveSlot() {
+        return parseInt(localStorage.getItem(this.ACTIVE_SLOT_KEY) || '0');
+    },
+
+    setActiveSlot(index) {
+        localStorage.setItem(this.ACTIVE_SLOT_KEY, String(index));
+    },
+
+    /**
+     * 获取所有存档槽信息
+     */
+    getAllSlots() {
+        const data = localStorage.getItem(this.SAVE_SLOTS_KEY);
+        if (data) return JSON.parse(data);
+        return [
+            { nickname: '玩家1', created: null, progress: null },
+            { nickname: '玩家2', created: null, progress: null },
+            { nickname: '玩家3', created: null, progress: null }
+        ];
+    },
+
+    saveAllSlots(slots) {
+        localStorage.setItem(this.SAVE_SLOTS_KEY, JSON.stringify(slots));
+    },
+
+    /**
+     * 保存当前进度到活跃存档槽
+     */
+    syncToSlot() {
+        const slots = this.getAllSlots();
+        const idx = this.getActiveSlot();
+        const progress = this.getAllProgress();
+        slots[idx].progress = progress;
+        slots[idx].lastSave = new Date().toISOString();
+        if (!slots[idx].created) slots[idx].created = new Date().toISOString();
+        this.saveAllSlots(slots);
+    },
+
+    /**
+     * 从存档槽加载进度
+     */
+    loadFromSlot(index) {
+        const slots = this.getAllSlots();
+        if (slots[index] && slots[index].progress) {
+            this.saveProgress(slots[index].progress);
+            this.setActiveSlot(index);
+            return true;
+        }
+        return false;
+    },
+
+    /**
+     * 导出存档为 JSON
+     */
+    exportSave() {
+        const slots = this.getAllSlots();
+        const idx = this.getActiveSlot();
+        this.syncToSlot();
+        return JSON.stringify({
+            version: '2.0-beta',
+            slot: slots[idx],
+            theme: localStorage.getItem('typing_shooter_theme') || 'space',
+            wordLib: localStorage.getItem('typing_shooter_custom_words') || '',
+            exportTime: new Date().toISOString()
+        }, null, 2);
+    },
+
+    /**
+     * 导入存档
+     */
+    importSave(jsonStr) {
+        try {
+            const data = JSON.parse(jsonStr);
+            if (!data.slot || !data.slot.progress) return false;
+            const slots = this.getAllSlots();
+            const idx = this.getActiveSlot();
+            slots[idx] = data.slot;
+            this.saveAllSlots(slots);
+            this.saveProgress(data.slot.progress);
+            if (data.theme) localStorage.setItem('typing_shooter_theme', data.theme);
+            if (data.wordLib) localStorage.setItem('typing_shooter_custom_words', data.wordLib);
+            return true;
+        } catch (e) {
+            console.error('存档导入失败:', e);
+            return false;
+        }
+    },
+
+    /**
+     * 删除存档槽
+     */
+    deleteSlot(index) {
+        const slots = this.getAllSlots();
+        slots[index] = { nickname: `玩家${index + 1}`, created: null, progress: null };
+        this.saveAllSlots(slots);
+    },
 
     /**
      * 获取所有进度数据
@@ -40,6 +140,8 @@ const ProgressData = {
      */
     saveProgress(progress) {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+        // Beta: 自动同步到存档槽
+        this.syncToSlot();
     },
 
     /**

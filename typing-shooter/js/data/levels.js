@@ -17,40 +17,41 @@ const LevelsData = {
     // ============================================
     levels: [
         // ---- 初级 Easy（单字母）----
-        { major: 0, minor: 0, name: '初级 - 第1关', wordType: 'letter', speed: 25, spawnInterval: 4000, maxEnemies: 2, targetKills: 6, lives: 5, showKeyboard: true },
-        { major: 0, minor: 1, name: '初级 - 第2关', wordType: 'letter', speed: 30, spawnInterval: 3600, maxEnemies: 3, targetKills: 8, lives: 5, showKeyboard: true },
-        { major: 0, minor: 2, name: '初级 - 第3关', wordType: 'letter', speed: 35, spawnInterval: 3200, maxEnemies: 3, targetKills: 10, lives: 5, showKeyboard: true },
-        { major: 0, minor: 3, name: '初级 - 第4关', wordType: 'letter', speed: 38, spawnInterval: 2900, maxEnemies: 3, targetKills: 12, lives: 5, showKeyboard: true },
-        { major: 0, minor: 4, name: '初级 - 第5关', wordType: 'letter', speed: 42, spawnInterval: 2600, maxEnemies: 4, targetKills: 14, lives: 5, showKeyboard: true },
-        { major: 0, minor: 5, name: '初级 - 第6关', wordType: 'letter', speed: 46, spawnInterval: 2400, maxEnemies: 4, targetKills: 16, lives: 5, showKeyboard: true },
-        { major: 0, minor: 6, name: '初级 - 第7关', wordType: 'letter', speed: 50, spawnInterval: 2200, maxEnemies: 4, targetKills: 18, lives: 5, showKeyboard: true },
-        { major: 0, minor: 7, name: '初级 - 第8关', wordType: 'letter', speed: 54, spawnInterval: 2000, maxEnemies: 5, targetKills: 20, lives: 5, showKeyboard: true },
-        { major: 0, minor: 8, name: '初级 - 第9关', wordType: 'letter', speed: 58, spawnInterval: 1800, maxEnemies: 5, targetKills: 22, lives: 5, showKeyboard: true },
-        { major: 0, minor: 9, name: '初级 - 第10关', wordType: 'letter', speed: 62, spawnInterval: 1600, maxEnemies: 6, targetKills: 25, lives: 5, showKeyboard: true },
+        // enemyTypes: { normal: 概率, fast: 概率, armored: 概率, zigzag: 概率 }
+        { major: 0, minor: 0, name: '初级 - 第1关', wordType: 'letter', speed: 25, spawnInterval: 4000, maxEnemies: 2, targetKills: 6, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
+        { major: 0, minor: 1, name: '初级 - 第2关', wordType: 'letter', speed: 30, spawnInterval: 3600, maxEnemies: 3, targetKills: 8, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
+        { major: 0, minor: 2, name: '初级 - 第3关', wordType: 'letter', speed: 35, spawnInterval: 3200, maxEnemies: 3, targetKills: 10, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
+        { major: 0, minor: 3, name: '初级 - 第4关', wordType: 'letter', speed: 38, spawnInterval: 2900, maxEnemies: 3, targetKills: 12, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
+        { major: 0, minor: 4, name: '初级 - 第5关', wordType: 'letter', speed: 42, spawnInterval: 2600, maxEnemies: 4, targetKills: 14, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
+        { major: 0, minor: 5, name: '初级 - 第6关', wordType: 'letter', speed: 46, spawnInterval: 2400, maxEnemies: 4, targetKills: 16, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.8, fast: 0.2 } },
+        { major: 0, minor: 6, name: '初级 - 第7关', wordType: 'letter', speed: 50, spawnInterval: 2200, maxEnemies: 4, targetKills: 18, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.75, fast: 0.25 } },
+        { major: 0, minor: 7, name: '初级 - 第8关', wordType: 'letter', speed: 54, spawnInterval: 2000, maxEnemies: 5, targetKills: 20, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.7, fast: 0.3 } },
+        { major: 0, minor: 8, name: '初级 - 第9关', wordType: 'letter', speed: 58, spawnInterval: 1800, maxEnemies: 5, targetKills: 22, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.65, fast: 0.35 } },
+        { major: 0, minor: 9, name: '初级 - 第10关', wordType: 'letter', speed: 62, spawnInterval: 1600, maxEnemies: 6, targetKills: 25, lives: 5, showKeyboard: true, isBoss: true, boss: 'boss1', enemyTypes: { normal: 0.6, fast: 0.4 } },
 
         // ---- 中级 Medium（短单词 3-4 字母）----
-        { major: 1, minor: 0, name: '中级 - 第1关', wordType: 'short', speed: 22, spawnInterval: 4500, maxEnemies: 2, targetKills: 6, lives: 4, showKeyboard: false },
-        { major: 1, minor: 1, name: '中级 - 第2关', wordType: 'short', speed: 26, spawnInterval: 4200, maxEnemies: 3, targetKills: 8, lives: 4, showKeyboard: false },
-        { major: 1, minor: 2, name: '中级 - 第3关', wordType: 'short', speed: 30, spawnInterval: 3800, maxEnemies: 3, targetKills: 10, lives: 4, showKeyboard: false },
-        { major: 1, minor: 3, name: '中级 - 第4关', wordType: 'short', speed: 34, spawnInterval: 3500, maxEnemies: 4, targetKills: 12, lives: 4, showKeyboard: false },
-        { major: 1, minor: 4, name: '中级 - 第5关', wordType: 'short', speed: 38, spawnInterval: 3200, maxEnemies: 4, targetKills: 14, lives: 4, showKeyboard: false },
-        { major: 1, minor: 5, name: '中级 - 第6关', wordType: 'short', speed: 42, spawnInterval: 2900, maxEnemies: 5, targetKills: 16, lives: 4, showKeyboard: false },
-        { major: 1, minor: 6, name: '中级 - 第7关', wordType: 'short', speed: 46, spawnInterval: 2600, maxEnemies: 5, targetKills: 18, lives: 4, showKeyboard: false },
-        { major: 1, minor: 7, name: '中级 - 第8关', wordType: 'short', speed: 50, spawnInterval: 2300, maxEnemies: 6, targetKills: 20, lives: 4, showKeyboard: false },
-        { major: 1, minor: 8, name: '中级 - 第9关', wordType: 'short', speed: 54, spawnInterval: 2000, maxEnemies: 7, targetKills: 22, lives: 4, showKeyboard: false },
-        { major: 1, minor: 9, name: '中级 - 第10关', wordType: 'short', speed: 58, spawnInterval: 1800, maxEnemies: 8, targetKills: 25, lives: 4, showKeyboard: false },
+        { major: 1, minor: 0, name: '中级 - 第1关', wordType: 'short', speed: 22, spawnInterval: 4500, maxEnemies: 2, targetKills: 6, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.8, fast: 0.2 } },
+        { major: 1, minor: 1, name: '中级 - 第2关', wordType: 'short', speed: 26, spawnInterval: 4200, maxEnemies: 3, targetKills: 8, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.7, fast: 0.2, armored: 0.1 } },
+        { major: 1, minor: 2, name: '中级 - 第3关', wordType: 'short', speed: 30, spawnInterval: 3800, maxEnemies: 3, targetKills: 10, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.6, fast: 0.2, armored: 0.1, zigzag: 0.1 } },
+        { major: 1, minor: 3, name: '中级 - 第4关', wordType: 'short', speed: 34, spawnInterval: 3500, maxEnemies: 4, targetKills: 12, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.5, fast: 0.2, armored: 0.15, zigzag: 0.15 } },
+        { major: 1, minor: 4, name: '中级 - 第5关', wordType: 'short', speed: 38, spawnInterval: 3200, maxEnemies: 4, targetKills: 14, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.45, fast: 0.25, armored: 0.15, zigzag: 0.15 } },
+        { major: 1, minor: 5, name: '中级 - 第6关', wordType: 'short', speed: 42, spawnInterval: 2900, maxEnemies: 5, targetKills: 16, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.4, fast: 0.25, armored: 0.2, zigzag: 0.15 } },
+        { major: 1, minor: 6, name: '中级 - 第7关', wordType: 'short', speed: 46, spawnInterval: 2600, maxEnemies: 5, targetKills: 18, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.35, fast: 0.25, armored: 0.2, zigzag: 0.2 } },
+        { major: 1, minor: 7, name: '中级 - 第8关', wordType: 'short', speed: 50, spawnInterval: 2300, maxEnemies: 6, targetKills: 20, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.3, fast: 0.3, armored: 0.2, zigzag: 0.2 } },
+        { major: 1, minor: 8, name: '中级 - 第9关', wordType: 'short', speed: 54, spawnInterval: 2000, maxEnemies: 7, targetKills: 22, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.25, fast: 0.3, armored: 0.25, zigzag: 0.2 } },
+        { major: 1, minor: 9, name: '中级 - 第10关', wordType: 'short', speed: 58, spawnInterval: 1800, maxEnemies: 8, targetKills: 25, lives: 4, showKeyboard: false, isBoss: true, boss: 'boss2', enemyTypes: { normal: 0.2, fast: 0.3, armored: 0.25, zigzag: 0.25 } },
 
         // ---- 高级 Hard（长单词 5+ 字母）----
-        { major: 2, minor: 0, name: '高级 - 第1关', wordType: 'long', speed: 20, spawnInterval: 5000, maxEnemies: 3, targetKills: 6, lives: 3, showKeyboard: false },
-        { major: 2, minor: 1, name: '高级 - 第2关', wordType: 'long', speed: 24, spawnInterval: 4600, maxEnemies: 3, targetKills: 8, lives: 3, showKeyboard: false },
-        { major: 2, minor: 2, name: '高级 - 第3关', wordType: 'long', speed: 28, spawnInterval: 4200, maxEnemies: 4, targetKills: 10, lives: 3, showKeyboard: false },
-        { major: 2, minor: 3, name: '高级 - 第4关', wordType: 'long', speed: 32, spawnInterval: 3800, maxEnemies: 4, targetKills: 12, lives: 3, showKeyboard: false },
-        { major: 2, minor: 4, name: '高级 - 第5关', wordType: 'long', speed: 36, spawnInterval: 3500, maxEnemies: 5, targetKills: 14, lives: 3, showKeyboard: false },
-        { major: 2, minor: 5, name: '高级 - 第6关', wordType: 'long', speed: 40, spawnInterval: 3200, maxEnemies: 6, targetKills: 16, lives: 3, showKeyboard: false },
-        { major: 2, minor: 6, name: '高级 - 第7关', wordType: 'long', speed: 44, spawnInterval: 2900, maxEnemies: 7, targetKills: 18, lives: 3, showKeyboard: false },
-        { major: 2, minor: 7, name: '高级 - 第8关', wordType: 'long', speed: 48, spawnInterval: 2600, maxEnemies: 8, targetKills: 20, lives: 3, showKeyboard: false },
-        { major: 2, minor: 8, name: '高级 - 第9关', wordType: 'long', speed: 52, spawnInterval: 2300, maxEnemies: 9, targetKills: 22, lives: 3, showKeyboard: false },
-        { major: 2, minor: 9, name: '高级 - 第10关', wordType: 'long', speed: 56, spawnInterval: 2000, maxEnemies: 10, targetKills: 25, lives: 3, showKeyboard: false }
+        { major: 2, minor: 0, name: '高级 - 第1关', wordType: 'long', speed: 20, spawnInterval: 5000, maxEnemies: 3, targetKills: 6, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.4, fast: 0.25, armored: 0.2, zigzag: 0.15 } },
+        { major: 2, minor: 1, name: '高级 - 第2关', wordType: 'long', speed: 24, spawnInterval: 4600, maxEnemies: 3, targetKills: 8, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.35, fast: 0.25, armored: 0.2, zigzag: 0.2 } },
+        { major: 2, minor: 2, name: '高级 - 第3关', wordType: 'long', speed: 28, spawnInterval: 4200, maxEnemies: 4, targetKills: 10, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.3, fast: 0.25, armored: 0.25, zigzag: 0.2 } },
+        { major: 2, minor: 3, name: '高级 - 第4关', wordType: 'long', speed: 32, spawnInterval: 3800, maxEnemies: 4, targetKills: 12, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.25, fast: 0.3, armored: 0.25, zigzag: 0.2 } },
+        { major: 2, minor: 4, name: '高级 - 第5关', wordType: 'long', speed: 36, spawnInterval: 3500, maxEnemies: 5, targetKills: 14, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.2, fast: 0.3, armored: 0.25, zigzag: 0.25 } },
+        { major: 2, minor: 5, name: '高级 - 第6关', wordType: 'long', speed: 40, spawnInterval: 3200, maxEnemies: 6, targetKills: 16, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.15, fast: 0.3, armored: 0.3, zigzag: 0.25 } },
+        { major: 2, minor: 6, name: '高级 - 第7关', wordType: 'long', speed: 44, spawnInterval: 2900, maxEnemies: 7, targetKills: 18, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.15, fast: 0.3, armored: 0.3, zigzag: 0.25 } },
+        { major: 2, minor: 7, name: '高级 - 第8关', wordType: 'long', speed: 48, spawnInterval: 2600, maxEnemies: 8, targetKills: 20, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.1, fast: 0.35, armored: 0.3, zigzag: 0.25 } },
+        { major: 2, minor: 8, name: '高级 - 第9关', wordType: 'long', speed: 52, spawnInterval: 2300, maxEnemies: 9, targetKills: 22, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.1, fast: 0.35, armored: 0.3, zigzag: 0.25 } },
+        { major: 2, minor: 9, name: '高级 - 第10关', wordType: 'long', speed: 56, spawnInterval: 2000, maxEnemies: 10, targetKills: 25, lives: 3, showKeyboard: false, isBoss: true, boss: 'boss3', enemyTypes: { normal: 0.1, fast: 0.35, armored: 0.3, zigzag: 0.25 } }
     ],
 
     /**
@@ -116,7 +117,8 @@ const LevelsData = {
             targetKills: Infinity,  // 无尽模式没有通关条件
             lives: params.lives || 5,
             showKeyboard: params.showKeyboard !== undefined ? params.showKeyboard : true,
-            isCustom: true
+            isCustom: true,
+            enemyTypes: { normal: 0.4, fast: 0.25, armored: 0.2, zigzag: 0.15 }
         };
     },
 

@@ -35,7 +35,8 @@ const config = {
         CustomScene,
         WordLibScene,
         GameScene,
-        GameOverScene
+        GameOverScene,
+        SaveScene
     ]
 };
 
