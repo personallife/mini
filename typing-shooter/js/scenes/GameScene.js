@@ -997,7 +997,13 @@ class GameScene extends Phaser.Scene {
     handleLockModeInput(key) {
         // Beta: Boss 战输入优先
         if (this.bossActive && !this.lockedEnemy) {
+            // 优先尝试收集道具（回血/护盾等）
+            if (this.tryCollectPowerup(key)) return;
+            // 再尝试抵消Boss子弹
+            if (this.tryDestroyBossBullet(key)) return;
+            // 最后处理Boss单词输入
             if (this.handleBossInput(key)) return;
+            return; // Boss战中不处理其他逻辑
         }
 
         if (this.lockedEnemy && this.lockedEnemy.alive) {
@@ -1629,7 +1635,7 @@ class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(16);
 
         this.powerups.push({
-            x: x, y: y, letter: letter, type: type,
+            x: x, y: y, collectLetter: letter, type: type,
             sprite: sprite, letterText: letterText,
             speed: 35, alive: true
         });
