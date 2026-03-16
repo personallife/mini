@@ -51,6 +51,13 @@ class GameScene extends Phaser.Scene {
         this.shieldTimer = 0;
         this.slowActive = false;         // 减速状态
         this.slowTimer = 0;
+        this.slowSpeedFactor = 0.25;     // 减速系数（越小越慢）
+        this.freezeActive = false;       // 冰冻状态
+        this.freezeTimer = 0;
+        this.doubleScoreActive = false;  // 双倍得分状态
+        this.doubleScoreTimer = 0;
+        this.magnetActive = false;       // 磁铁状态
+        this.magnetTimer = 0;
     }
 
     create() {
@@ -171,9 +178,22 @@ class GameScene extends Phaser.Scene {
      * 生成道具
      */
     spawnPowerup(x, y) {
-        const types = ['shield', 'slow', 'bomb'];
-        const type = Phaser.Utils.Array.GetRandom(types);
-        const textureMap = { shield: 'powerup_shield', slow: 'powerup_slow', bomb: 'powerup_bomb' };
+        // 加权随机道具（减速/冰冻/护盾更常见，修复较少）
+        const typesPool = [
+            'shield', 'shield',
+            'slow', 'slow', 'slow',
+            'bomb',
+            'freeze', 'freeze', 'freeze',
+            'double', 'double',
+            'heal',
+            'magnet'
+        ];
+        const type = Phaser.Utils.Array.GetRandom(typesPool);
+        const textureMap = {
+            shield: 'powerup_shield', slow: 'powerup_slow', bomb: 'powerup_bomb',
+            freeze: 'powerup_freeze', double: 'powerup_double',
+            heal: 'powerup_heal', magnet: 'powerup_magnet'
+        };
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         const collectLetter = letters[Phaser.Math.Between(0, 25)];
 
@@ -205,7 +225,26 @@ class GameScene extends Phaser.Scene {
         for (let i = this.powerups.length - 1; i >= 0; i--) {
             const p = this.powerups[i];
             if (!p.alive) continue;
-            p.y += p.speed * dt;
+
+            // Beta: 磁铁效果 - 道具自动飞向玩家
+            if (this.magnetActive && this.player) {
+                const dx = this.player.x - p.x;
+                const dy = this.player.y - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 0) {
+                    const magnetSpeed = 180; // 磁铁吸引速度
+                    p.x += (dx / dist) * magnetSpeed * dt;
+                    p.y += (dy / dist) * magnetSpeed * dt;
+                    // 磁铁模式：靠近玩家自动收集
+                    if (dist < 50) {
+                        this.collectPowerup(p, i);
+                        continue;
+                    }
+                }
+            } else {
+                p.y += p.speed * dt;
+            }
+
             p.sprite.setPosition(p.x, p.y);
             p.letterText.setPosition(p.x, p.y + 30);
             // 飘落到底部移除
@@ -239,10 +278,69 @@ class GameScene extends Phaser.Scene {
             if (this.slowTimer <= 0) {
                 this.slowActive = false;
                 if (this.slowTimerText) { this.slowTimerText.destroy(); this.slowTimerText = null; }
-                // 恢复敌机速度
+                if (this.slowOverlay) { this.slowOverlay.destroy(); this.slowOverlay = null; }
+                // 恢复敌机速度（使用记录的原始速度）
                 this.enemies.forEach(e => {
-                    if (e.alive) { e.vx *= 2; e.vy *= 2; }
+                    if (e.alive && !this.freezeActive && e._originalVx !== undefined) {
+                        e.vx = e._originalVx;
+                        e.vy = e._originalVy;
+                        delete e._originalVx;
+                        delete e._originalVy;
+                        if (e.sprite) e.sprite.clearTint();
+                    }
                 });
+            }
+        }
+        // 磁铁倒计时
+        if (this.magnetActive) {
+            this.magnetTimer -= dt;
+            if (this.magnetTimerText) this.magnetTimerText.setText(`🧲 ${Math.ceil(this.magnetTimer)}s`);
+            if (this.magnetTimer <= 0) {
+                this.magnetActive = false;
+                if (this.magnetTimerText) { this.magnetTimerText.destroy(); this.magnetTimerText = null; }
+                if (this.magnetOverlay) { this.magnetOverlay.destroy(); this.magnetOverlay = null; }
+            }
+        }
+        // 冰冻倒计时
+        if (this.freezeActive) {
+            this.freezeTimer -= dt;
+            if (this.freezeTimerText) this.freezeTimerText.setText(`❄️ ${Math.ceil(this.freezeTimer)}s`);
+            if (this.freezeTimer <= 0) {
+                this.freezeActive = false;
+                if (this.freezeTimerText) { this.freezeTimerText.destroy(); this.freezeTimerText = null; }
+                if (this.freezeOverlay) { this.freezeOverlay.destroy(); this.freezeOverlay = null; }
+                // 恢复敌机速度和颜色
+                this.enemies.forEach(e => {
+                    if (e.alive) {
+                        if (e._frozenVx !== undefined) {
+                            const factor = this.slowActive ? this.slowSpeedFactor : 1;
+                            e.vx = e._frozenVx * factor;
+                            e.vy = e._frozenVy * factor;
+                            // 如果减速仍在，保留原始速度记录
+                            if (this.slowActive) {
+                                e._originalVx = e._frozenVx;
+                                e._originalVy = e._frozenVy;
+                                if (e.sprite) e.sprite.setTint(0x44ddcc); // 减速色
+                            } else {
+                                if (e.sprite) e.sprite.clearTint();
+                            }
+                            delete e._frozenVx;
+                            delete e._frozenVy;
+                        } else {
+                            if (e.sprite) e.sprite.clearTint();
+                        }
+                    }
+                });
+            }
+        }
+        // 双倍得分倒计时
+        if (this.doubleScoreActive) {
+            this.doubleScoreTimer -= dt;
+            if (this.doubleTimerText) this.doubleTimerText.setText(`✨x2 ${Math.ceil(this.doubleScoreTimer)}s`);
+            if (this.doubleScoreTimer <= 0) {
+                this.doubleScoreActive = false;
+                if (this.doubleTimerText) { this.doubleTimerText.destroy(); this.doubleTimerText = null; }
+                if (this.doubleOverlay) { this.doubleOverlay.destroy(); this.doubleOverlay = null; }
             }
         }
     }
@@ -283,6 +381,10 @@ class GameScene extends Phaser.Scene {
             case 'shield': this.activateShield(); break;
             case 'slow': this.activateSlow(); break;
             case 'bomb': this.activateBomb(); break;
+            case 'freeze': this.activateFreeze(); break;
+            case 'double': this.activateDoubleScore(); break;
+            case 'heal': this.activateHeal(); break;
+            case 'magnet': this.activateMagnet(); break;
         }
     }
 
@@ -305,18 +407,42 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * 激活减速
+     * 激活减速（增强版：使用记录原速方式避免精度丢失）
      */
     activateSlow() {
         this.slowActive = true;
-        this.slowTimer = 8;
-        // 减速所有敌机
+        this.slowTimer = 10;
+        const factor = this.slowSpeedFactor; // 0.25
+        // 记录并减速所有敌机
         this.enemies.forEach(e => {
-            if (e.alive) { e.vx *= 0.5; e.vy *= 0.5; }
+            if (e.alive && !this.freezeActive) {
+                if (e._originalVx === undefined) {
+                    e._originalVx = e.vx;
+                    e._originalVy = e.vy;
+                }
+                e.vx = e._originalVx * factor;
+                e.vy = e._originalVy * factor;
+                // 减速视觉：敌机变蓝绿色
+                if (e.sprite) e.sprite.setTint(0x44ddcc);
+            }
         });
+        // 视觉效果：更明显的屏幕覆盖 + 波纹边框
+        if (this.slowOverlay) this.slowOverlay.destroy();
+        this.slowOverlay = this.add.graphics().setDepth(88);
+        this.slowOverlay.fillStyle(0x00aaff, 0.12);
+        this.slowOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        // 脉冲边框效果
+        this.slowOverlay.lineStyle(3, 0x44ccff, 0.4);
+        this.slowOverlay.strokeRect(2, 2, this.gameWidth - 4, this.gameHeight - 4);
+        // 提示文字闪现
+        const hint = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, '🐢 减速！', {
+            font: 'bold 24px Arial', fill: '#44ddff',
+            stroke: '#003366', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(95).setAlpha(0);
+        this.tweens.add({ targets: hint, alpha: 1, duration: 200, yoyo: true, hold: 400, onComplete: () => hint.destroy() });
         // HUD 倒计时
         if (this.slowTimerText) this.slowTimerText.destroy();
-        this.slowTimerText = this.add.text(this.gameWidth - 15, 55, `🐢 8s`, {
+        this.slowTimerText = this.add.text(this.gameWidth - 15, 55, `🐢 10s`, {
             font: 'bold 13px Arial', fill: '#44ccff'
         }).setOrigin(1, 0).setDepth(50);
     }
@@ -351,6 +477,109 @@ class GameScene extends Phaser.Scene {
             this.lockedEnemy = null;
             this.lockedLetterIndex = 0;
         }
+    }
+
+    /**
+     * 激活冰冻：完全冻住所有敌机 5 秒
+     */
+    activateFreeze() {
+        this.freezeActive = true;
+        this.freezeTimer = 5;
+        // 保存原速度并冻住
+        this.enemies.forEach(e => {
+            if (e.alive) {
+                e._frozenVx = e.vx;
+                e._frozenVy = e.vy;
+                e.vx = 0;
+                e.vy = 0;
+                // 变蓝特效
+                if (e.sprite) e.sprite.setTint(0x66ccff);
+            }
+        });
+        // 视觉效果：淡蓝冻结覆盖
+        if (this.freezeOverlay) this.freezeOverlay.destroy();
+        this.freezeOverlay = this.add.graphics().setDepth(88);
+        this.freezeOverlay.fillStyle(0x00ccff, 0.12);
+        this.freezeOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        // 屏幕边缘冰霜效果（多层）
+        this.freezeOverlay.lineStyle(4, 0x88eeff, 0.5);
+        this.freezeOverlay.strokeRect(2, 2, this.gameWidth - 4, this.gameHeight - 4);
+        this.freezeOverlay.lineStyle(2, 0xaaeeff, 0.3);
+        this.freezeOverlay.strokeRect(6, 6, this.gameWidth - 12, this.gameHeight - 12);
+        // 提示文字闪现
+        const hint = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, '❄️ 冰冻！', {
+            font: 'bold 26px Arial', fill: '#88eeff',
+            stroke: '#003355', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(95).setAlpha(0);
+        this.tweens.add({ targets: hint, alpha: 1, duration: 200, yoyo: true, hold: 500, onComplete: () => hint.destroy() });
+        // HUD
+        if (this.freezeTimerText) this.freezeTimerText.destroy();
+        this.freezeTimerText = this.add.text(this.gameWidth - 15, 75, `❄️ 5s`, {
+            font: 'bold 13px Arial', fill: '#88eeff'
+        }).setOrigin(1, 0).setDepth(50);
+    }
+
+    /**
+     * 激活治疗：恢复1点生命值
+     */
+    activateHeal() {
+        if (this.lives < this.levelConfig.lives) {
+            this.lives++;
+        }
+        this.updateHeartsDisplay();
+        // 绿色闪光效果
+        const flash = this.add.graphics().setDepth(95);
+        flash.fillStyle(0x44ff88, 0.2);
+        flash.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        this.tweens.add({ targets: flash, alpha: 0, duration: 600, onComplete: () => flash.destroy() });
+        // 提示文字
+        const hint = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, '💚 +1 生命', {
+            font: 'bold 24px Arial', fill: '#44ff88',
+            stroke: '#003322', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(95).setAlpha(0);
+        this.tweens.add({ targets: hint, alpha: 1, duration: 200, yoyo: true, hold: 500, onComplete: () => hint.destroy() });
+    }
+
+    /**
+     * 激活磁铁：8秒内道具自动飞向玩家
+     */
+    activateMagnet() {
+        this.magnetActive = true;
+        this.magnetTimer = 8;
+        // 视觉覆盖
+        if (this.magnetOverlay) this.magnetOverlay.destroy();
+        this.magnetOverlay = this.add.graphics().setDepth(88);
+        this.magnetOverlay.fillStyle(0xff44ff, 0.05);
+        this.magnetOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        // 提示文字
+        const hint = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, '🧲 磁铁！', {
+            font: 'bold 24px Arial', fill: '#ff88ff',
+            stroke: '#330033', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(95).setAlpha(0);
+        this.tweens.add({ targets: hint, alpha: 1, duration: 200, yoyo: true, hold: 400, onComplete: () => hint.destroy() });
+        // HUD
+        if (this.magnetTimerText) this.magnetTimerText.destroy();
+        this.magnetTimerText = this.add.text(this.gameWidth - 15, 115, `🧲 8s`, {
+            font: 'bold 13px Arial', fill: '#ff88ff'
+        }).setOrigin(1, 0).setDepth(50);
+    }
+
+    /**
+     * 激活双倍得分：12 秒内得分×2
+     */
+    activateDoubleScore() {
+        this.doubleScoreActive = true;
+        this.doubleScoreTimer = 12;
+        // 视觉效果：金色光芒覆盖
+        if (this.doubleOverlay) this.doubleOverlay.destroy();
+        this.doubleOverlay = this.add.graphics().setDepth(88);
+        this.doubleOverlay.fillStyle(0xffaa00, 0.06);
+        this.doubleOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
+        // HUD
+        if (this.doubleTimerText) this.doubleTimerText.destroy();
+        this.doubleTimerText = this.add.text(this.gameWidth - 15, 95, `✨x2 12s`, {
+            font: 'bold 13px Arial', fill: '#ffcc00'
+        }).setOrigin(1, 0).setDepth(50);
     }
 
     // ============================================
@@ -613,7 +842,7 @@ class GameScene extends Phaser.Scene {
         const targetY = this.player.y;
         const angle = Math.atan2(targetY - (-30), targetX - x);
         const speed = this.levelConfig.speed * config.speedMul;
-        const slowFactor = this.slowActive ? 0.5 : 1.0; // Beta: 减速道具影响
+        const slowFactor = this.freezeActive ? 0 : (this.slowActive ? this.slowSpeedFactor : 1.0); // Beta: 冰冻/减速道具影响
         const vx = Math.cos(angle) * speed * slowFactor;
         const vy = Math.sin(angle) * speed * slowFactor;
 
@@ -639,6 +868,24 @@ class GameScene extends Phaser.Scene {
         };
 
         this.enemies.push(enemyData);
+
+        // Beta: 减速期间新生成的敌机记录原始速度
+        if (this.slowActive && !this.freezeActive) {
+            enemyData._originalVx = Math.cos(angle) * speed;
+            enemyData._originalVy = Math.sin(angle) * speed;
+            if (enemyData.sprite) enemyData.sprite.setTint(0x44ddcc);
+        }
+
+        // Beta: 冰冻期间新生成的敌机也要冻住
+        if (this.freezeActive) {
+            enemyData._frozenVx = Math.cos(angle) * speed;
+            enemyData._frozenVy = Math.sin(angle) * speed;
+            if (this.slowActive) {
+                enemyData._originalVx = enemyData._frozenVx;
+                enemyData._originalVy = enemyData._frozenVy;
+            }
+            if (enemyData.sprite) enemyData.sprite.setTint(0x66ccff);
+        }
     }
 
     updateEnemies(delta) {
@@ -650,7 +897,9 @@ class GameScene extends Phaser.Scene {
 
             // 曲线敌机特殊移动
             if (e.enemyType === 'zigzag') {
-                e.zigzagPhase += e.zigzagFrequency * dt;
+                if (!this.freezeActive) {
+                    e.zigzagPhase += e.zigzagFrequency * dt;
+                }
                 e.y += e.vy * dt;
                 e.x = e.baseX + Math.sin(e.zigzagPhase) * e.zigzagAmplitude;
                 // 边界限制
@@ -969,7 +1218,7 @@ class GameScene extends Phaser.Scene {
         if (this.combo >= 20) comboMultiplier = 3.0;
         else if (this.combo >= 10) comboMultiplier = 2.0;
         else if (this.combo >= 5) comboMultiplier = 1.5;
-        const finalScore = Math.floor(baseScore * comboMultiplier);
+        const finalScore = Math.floor(baseScore * comboMultiplier * (this.doubleScoreActive ? 2 : 1));
         this.score += finalScore;
 
         this.updateScoreText();
@@ -985,8 +1234,9 @@ class GameScene extends Phaser.Scene {
         // 显示得分飘字
         this.showFloatingScore(enemy.x, enemy.y, finalScore);
 
-        // Beta: 道具掉落（10-15%概率）
-        if (Math.random() < 0.12) {
+        // Beta: 道具掉落（根据关卡配置的概率）
+        const dropRate = this.levelConfig.powerupRate || 0.20;
+        if (Math.random() < dropRate) {
             this.spawnPowerup(enemy.x, enemy.y);
         }
 
@@ -1033,14 +1283,12 @@ class GameScene extends Phaser.Scene {
         // Beta: 切换Boss战BGM
         SoundManager.startBGM('boss');
 
-        const bossConfigs = {
-            boss1: { name: '\u5b57\u6bcd\u5927\u738b', texture: 'boss1', hp: 5, wordType: 'letter', scale: 0.35, minionInterval: 6000 },
-            boss2: { name: '\u5355\u8bcd\u9738\u4e3b', texture: 'boss2', hp: 8, wordType: 'short', scale: 0.3, minionInterval: 5000 },
-            boss3: { name: '\u952e\u76d8\u9b54\u738b', texture: 'boss3', hp: 12, wordType: 'long', scale: 0.28, minionInterval: 4000 }
-        };
-
-        const bossKey = this.levelConfig.boss || 'boss1';
-        const cfg = bossConfigs[bossKey];
+        const bossKey = this.levelConfig.boss || 'boss1a';
+        const cfg = LevelsData.BOSS_TABLE[bossKey];
+        if (!cfg) {
+            console.error('Boss配置未找到:', bossKey);
+            return;
+        }
         this.bossMaxHP = cfg.hp;
         this.bossHP = cfg.hp;
         this.bossHitsNeeded = cfg.hp;

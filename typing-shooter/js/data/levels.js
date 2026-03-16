@@ -1,6 +1,7 @@
 /**
  * 关卡数据模块
- * 定义3大级别 × 10小级 = 30个关卡的配置
+ * 定义3大级别 × 20小级 = 60个关卡的配置
+ * Boss关：每隔3关一个Boss（第3/6/9/12/15/18关）
  */
 const LevelsData = {
     // 大级别名称
@@ -10,54 +11,143 @@ const LevelsData = {
         { key: 'hard', name: '高级', nameEn: 'Hard', color: '#F44336', wordType: 'long' }
     ],
 
-    MINOR_LEVEL_COUNT: 10, // 每个大级别的小级数量
+    MINOR_LEVEL_COUNT: 20, // 每个大级别的小级数量
+
+    // Boss 配置表：boss1a ~ boss3f
+    BOSS_TABLE: {
+        // 初级 Boss（6个，逐步增强）
+        boss1a: { name: '字母小兵', texture: 'boss1', hp: 3, wordType: 'letter', scale: 0.35, minionInterval: 8000 },
+        boss1b: { name: '字母卫兵', texture: 'boss1', hp: 4, wordType: 'letter', scale: 0.35, minionInterval: 7000 },
+        boss1c: { name: '字母队长', texture: 'boss1', hp: 5, wordType: 'letter', scale: 0.35, minionInterval: 6500 },
+        boss1d: { name: '字母将军', texture: 'boss1', hp: 6, wordType: 'letter', scale: 0.35, minionInterval: 6000 },
+        boss1e: { name: '字母统帅', texture: 'boss1', hp: 7, wordType: 'letter', scale: 0.35, minionInterval: 5500 },
+        boss1f: { name: '字母大王', texture: 'boss1', hp: 8, wordType: 'letter', scale: 0.35, minionInterval: 5000 },
+        // 中级 Boss（6个）
+        boss2a: { name: '单词新兵', texture: 'boss2', hp: 5, wordType: 'short', scale: 0.3, minionInterval: 7000 },
+        boss2b: { name: '单词猎手', texture: 'boss2', hp: 6, wordType: 'short', scale: 0.3, minionInterval: 6500 },
+        boss2c: { name: '单词骑士', texture: 'boss2', hp: 7, wordType: 'short', scale: 0.3, minionInterval: 6000 },
+        boss2d: { name: '单词法师', texture: 'boss2', hp: 8, wordType: 'short', scale: 0.3, minionInterval: 5500 },
+        boss2e: { name: '单词领主', texture: 'boss2', hp: 10, wordType: 'short', scale: 0.3, minionInterval: 5000 },
+        boss2f: { name: '单词霸主', texture: 'boss2', hp: 12, wordType: 'short', scale: 0.3, minionInterval: 4500 },
+        // 高级 Boss（6个）
+        boss3a: { name: '键盘学徒', texture: 'boss3', hp: 7, wordType: 'long', scale: 0.28, minionInterval: 6000 },
+        boss3b: { name: '键盘刺客', texture: 'boss3', hp: 8, wordType: 'long', scale: 0.28, minionInterval: 5500 },
+        boss3c: { name: '键盘术士', texture: 'boss3', hp: 10, wordType: 'long', scale: 0.28, minionInterval: 5000 },
+        boss3d: { name: '键盘战神', texture: 'boss3', hp: 12, wordType: 'long', scale: 0.28, minionInterval: 4500 },
+        boss3e: { name: '键盘暴君', texture: 'boss3', hp: 14, wordType: 'long', scale: 0.28, minionInterval: 4000 },
+        boss3f: { name: '键盘魔王', texture: 'boss3', hp: 16, wordType: 'long', scale: 0.28, minionInterval: 3500 }
+    },
 
     // ============================================
-    // 30个关卡配置：3大级别 × 10小级
+    // 60个关卡配置：3大级别 × 20小级
+    // 难度曲线更平缓，从1~20缓和提升
+    // Boss关：第3/6/9/12/15/18关（minor 2/5/8/11/14/17）
     // ============================================
-    levels: [
-        // ---- 初级 Easy（单字母）----
-        // enemyTypes: { normal: 概率, fast: 概率, armored: 概率, zigzag: 概率 }
-        { major: 0, minor: 0, name: '初级 - 第1关', wordType: 'letter', speed: 25, spawnInterval: 4000, maxEnemies: 2, targetKills: 6, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
-        { major: 0, minor: 1, name: '初级 - 第2关', wordType: 'letter', speed: 30, spawnInterval: 3600, maxEnemies: 3, targetKills: 8, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
-        { major: 0, minor: 2, name: '初级 - 第3关', wordType: 'letter', speed: 35, spawnInterval: 3200, maxEnemies: 3, targetKills: 10, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
-        { major: 0, minor: 3, name: '初级 - 第4关', wordType: 'letter', speed: 38, spawnInterval: 2900, maxEnemies: 3, targetKills: 12, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
-        { major: 0, minor: 4, name: '初级 - 第5关', wordType: 'letter', speed: 42, spawnInterval: 2600, maxEnemies: 4, targetKills: 14, lives: 5, showKeyboard: true, enemyTypes: { normal: 1 } },
-        { major: 0, minor: 5, name: '初级 - 第6关', wordType: 'letter', speed: 46, spawnInterval: 2400, maxEnemies: 4, targetKills: 16, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.8, fast: 0.2 } },
-        { major: 0, minor: 6, name: '初级 - 第7关', wordType: 'letter', speed: 50, spawnInterval: 2200, maxEnemies: 4, targetKills: 18, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.75, fast: 0.25 } },
-        { major: 0, minor: 7, name: '初级 - 第8关', wordType: 'letter', speed: 54, spawnInterval: 2000, maxEnemies: 5, targetKills: 20, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.7, fast: 0.3 } },
-        { major: 0, minor: 8, name: '初级 - 第9关', wordType: 'letter', speed: 58, spawnInterval: 1800, maxEnemies: 5, targetKills: 22, lives: 5, showKeyboard: true, enemyTypes: { normal: 0.65, fast: 0.35 } },
-        { major: 0, minor: 9, name: '初级 - 第10关', wordType: 'letter', speed: 62, spawnInterval: 1600, maxEnemies: 6, targetKills: 25, lives: 5, showKeyboard: true, isBoss: true, boss: 'boss1', enemyTypes: { normal: 0.6, fast: 0.4 } },
+    levels: [],
 
-        // ---- 中级 Medium（短单词 3-4 字母）----
-        { major: 1, minor: 0, name: '中级 - 第1关', wordType: 'short', speed: 22, spawnInterval: 4500, maxEnemies: 2, targetKills: 6, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.8, fast: 0.2 } },
-        { major: 1, minor: 1, name: '中级 - 第2关', wordType: 'short', speed: 26, spawnInterval: 4200, maxEnemies: 3, targetKills: 8, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.7, fast: 0.2, armored: 0.1 } },
-        { major: 1, minor: 2, name: '中级 - 第3关', wordType: 'short', speed: 30, spawnInterval: 3800, maxEnemies: 3, targetKills: 10, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.6, fast: 0.2, armored: 0.1, zigzag: 0.1 } },
-        { major: 1, minor: 3, name: '中级 - 第4关', wordType: 'short', speed: 34, spawnInterval: 3500, maxEnemies: 4, targetKills: 12, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.5, fast: 0.2, armored: 0.15, zigzag: 0.15 } },
-        { major: 1, minor: 4, name: '中级 - 第5关', wordType: 'short', speed: 38, spawnInterval: 3200, maxEnemies: 4, targetKills: 14, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.45, fast: 0.25, armored: 0.15, zigzag: 0.15 } },
-        { major: 1, minor: 5, name: '中级 - 第6关', wordType: 'short', speed: 42, spawnInterval: 2900, maxEnemies: 5, targetKills: 16, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.4, fast: 0.25, armored: 0.2, zigzag: 0.15 } },
-        { major: 1, minor: 6, name: '中级 - 第7关', wordType: 'short', speed: 46, spawnInterval: 2600, maxEnemies: 5, targetKills: 18, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.35, fast: 0.25, armored: 0.2, zigzag: 0.2 } },
-        { major: 1, minor: 7, name: '中级 - 第8关', wordType: 'short', speed: 50, spawnInterval: 2300, maxEnemies: 6, targetKills: 20, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.3, fast: 0.3, armored: 0.2, zigzag: 0.2 } },
-        { major: 1, minor: 8, name: '中级 - 第9关', wordType: 'short', speed: 54, spawnInterval: 2000, maxEnemies: 7, targetKills: 22, lives: 4, showKeyboard: false, enemyTypes: { normal: 0.25, fast: 0.3, armored: 0.25, zigzag: 0.2 } },
-        { major: 1, minor: 9, name: '中级 - 第10关', wordType: 'short', speed: 58, spawnInterval: 1800, maxEnemies: 8, targetKills: 25, lives: 4, showKeyboard: false, isBoss: true, boss: 'boss2', enemyTypes: { normal: 0.2, fast: 0.3, armored: 0.25, zigzag: 0.25 } },
+    /**
+     * 初始化所有关卡（动态生成，避免手动维护60个配置）
+     * 难度曲线更平缓，每关内容更充实
+     */
+    init() {
+        this.levels = [];
+        // ---- 初级 Easy（单字母，20关）----
+        const easyBosses = ['boss1a', 'boss1b', 'boss1c', 'boss1d', 'boss1e', 'boss1f'];
+        for (let i = 0; i < 20; i++) {
+            // 使用 easeIn 缓动函数让前半段更平缓，后半段适当加速
+            const t = i / 19; // 0~1 线性
+            const tEase = t * t;  // 二次缓入，前期更平缓
+            const isBoss = (i + 1) % 3 === 0; // 第3/6/9/12/15/18关
+            const bossIdx = Math.floor((i + 1) / 3) - 1;
+            const normalRatio = Math.max(0.5, 1 - tEase * 0.5);
+            const fastRatio = Math.min(0.4, tEase * 0.5);
+            const level = {
+                major: 0, minor: i,
+                name: `初级 - 第${i + 1}关`,
+                wordType: 'letter',
+                speed: Math.round(15 + tEase * 40),            // 15→55（起步更慢）
+                spawnInterval: Math.round(5000 - tEase * 2800), // 5000→2200
+                maxEnemies: Math.round(2 + tEase * 4),          // 2→6
+                targetKills: Math.round(10 + t * 30),           // 10→40（内容更多）
+                lives: 5,
+                showKeyboard: true,
+                powerupRate: +(0.15 + t * 0.10).toFixed(2),     // 15%→25% 道具掉率
+                enemyTypes: { normal: +normalRatio.toFixed(2), fast: +fastRatio.toFixed(2) }
+            };
+            if (isBoss && bossIdx >= 0 && bossIdx < 6) {
+                level.isBoss = true;
+                level.boss = easyBosses[bossIdx];
+            }
+            this.levels.push(level);
+        }
 
-        // ---- 高级 Hard（长单词 5+ 字母）----
-        { major: 2, minor: 0, name: '高级 - 第1关', wordType: 'long', speed: 20, spawnInterval: 5000, maxEnemies: 3, targetKills: 6, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.4, fast: 0.25, armored: 0.2, zigzag: 0.15 } },
-        { major: 2, minor: 1, name: '高级 - 第2关', wordType: 'long', speed: 24, spawnInterval: 4600, maxEnemies: 3, targetKills: 8, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.35, fast: 0.25, armored: 0.2, zigzag: 0.2 } },
-        { major: 2, minor: 2, name: '高级 - 第3关', wordType: 'long', speed: 28, spawnInterval: 4200, maxEnemies: 4, targetKills: 10, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.3, fast: 0.25, armored: 0.25, zigzag: 0.2 } },
-        { major: 2, minor: 3, name: '高级 - 第4关', wordType: 'long', speed: 32, spawnInterval: 3800, maxEnemies: 4, targetKills: 12, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.25, fast: 0.3, armored: 0.25, zigzag: 0.2 } },
-        { major: 2, minor: 4, name: '高级 - 第5关', wordType: 'long', speed: 36, spawnInterval: 3500, maxEnemies: 5, targetKills: 14, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.2, fast: 0.3, armored: 0.25, zigzag: 0.25 } },
-        { major: 2, minor: 5, name: '高级 - 第6关', wordType: 'long', speed: 40, spawnInterval: 3200, maxEnemies: 6, targetKills: 16, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.15, fast: 0.3, armored: 0.3, zigzag: 0.25 } },
-        { major: 2, minor: 6, name: '高级 - 第7关', wordType: 'long', speed: 44, spawnInterval: 2900, maxEnemies: 7, targetKills: 18, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.15, fast: 0.3, armored: 0.3, zigzag: 0.25 } },
-        { major: 2, minor: 7, name: '高级 - 第8关', wordType: 'long', speed: 48, spawnInterval: 2600, maxEnemies: 8, targetKills: 20, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.1, fast: 0.35, armored: 0.3, zigzag: 0.25 } },
-        { major: 2, minor: 8, name: '高级 - 第9关', wordType: 'long', speed: 52, spawnInterval: 2300, maxEnemies: 9, targetKills: 22, lives: 3, showKeyboard: false, enemyTypes: { normal: 0.1, fast: 0.35, armored: 0.3, zigzag: 0.25 } },
-        { major: 2, minor: 9, name: '高级 - 第10关', wordType: 'long', speed: 56, spawnInterval: 2000, maxEnemies: 10, targetKills: 25, lives: 3, showKeyboard: false, isBoss: true, boss: 'boss3', enemyTypes: { normal: 0.1, fast: 0.35, armored: 0.3, zigzag: 0.25 } }
-    ],
+        // ---- 中级 Medium（短单词 3-4 字母，20关）----
+        const medBosses = ['boss2a', 'boss2b', 'boss2c', 'boss2d', 'boss2e', 'boss2f'];
+        for (let i = 0; i < 20; i++) {
+            const t = i / 19;
+            const tEase = t * t;
+            const isBoss = (i + 1) % 3 === 0;
+            const bossIdx = Math.floor((i + 1) / 3) - 1;
+            const normalR = Math.max(0.15, 0.7 - tEase * 0.55);
+            const fastR = +(0.15 + tEase * 0.2).toFixed(2);
+            const armorR = +(0.05 + tEase * 0.2).toFixed(2);
+            const zigR = +(Math.max(0, tEase * 0.2)).toFixed(2);
+            const level = {
+                major: 1, minor: i,
+                name: `中级 - 第${i + 1}关`,
+                wordType: 'short',
+                speed: Math.round(14 + tEase * 40),            // 14→54
+                spawnInterval: Math.round(5500 - tEase * 3000), // 5500→2500
+                maxEnemies: Math.round(2 + tEase * 6),          // 2→8
+                targetKills: Math.round(10 + t * 30),           // 10→40
+                lives: 4,
+                showKeyboard: false,
+                powerupRate: +(0.18 + t * 0.10).toFixed(2),     // 18%→28%
+                enemyTypes: { normal: +normalR.toFixed(2), fast: fastR, armored: armorR, zigzag: zigR }
+            };
+            if (isBoss && bossIdx >= 0 && bossIdx < 6) {
+                level.isBoss = true;
+                level.boss = medBosses[bossIdx];
+            }
+            this.levels.push(level);
+        }
+
+        // ---- 高级 Hard（长单词 5+ 字母，20关）----
+        const hardBosses = ['boss3a', 'boss3b', 'boss3c', 'boss3d', 'boss3e', 'boss3f'];
+        for (let i = 0; i < 20; i++) {
+            const t = i / 19;
+            const tEase = t * t;
+            const isBoss = (i + 1) % 3 === 0;
+            const bossIdx = Math.floor((i + 1) / 3) - 1;
+            const normalR = Math.max(0.05, 0.35 - tEase * 0.3);
+            const fastR = +(0.2 + tEase * 0.2).toFixed(2);
+            const armorR = +(0.2 + tEase * 0.15).toFixed(2);
+            const zigR = +(0.15 + tEase * 0.15).toFixed(2);
+            const level = {
+                major: 2, minor: i,
+                name: `高级 - 第${i + 1}关`,
+                wordType: 'long',
+                speed: Math.round(12 + tEase * 40),            // 12→52
+                spawnInterval: Math.round(6000 - tEase * 3500), // 6000→2500
+                maxEnemies: Math.round(3 + tEase * 7),          // 3→10
+                targetKills: Math.round(12 + t * 33),           // 12→45
+                lives: 3,
+                showKeyboard: false,
+                powerupRate: +(0.20 + t * 0.12).toFixed(2),     // 20%→32%
+                enemyTypes: { normal: +normalR.toFixed(2), fast: fastR, armored: armorR, zigzag: zigR }
+            };
+            if (isBoss && bossIdx >= 0 && bossIdx < 6) {
+                level.isBoss = true;
+                level.boss = hardBosses[bossIdx];
+            }
+            this.levels.push(level);
+        }
+    },
 
     /**
      * 获取指定关卡配置
      * @param {number} major - 大级别索引 (0-2)
-     * @param {number} minor - 小级索引 (0-9)
+     * @param {number} minor - 小级索引 (0-19)
      */
     getLevel(major, minor) {
         return this.levels.find(l => l.major === major && l.minor === minor);
@@ -136,3 +226,6 @@ const LevelsData = {
         return 5000 - (value - 1) * (4200 / 9);
     }
 };
+
+// 初始化关卡数据
+LevelsData.init();

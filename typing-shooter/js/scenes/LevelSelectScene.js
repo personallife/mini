@@ -29,8 +29,8 @@ class LevelSelectScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // 创建可滚动容器
-        // 每个大级别区块高度：标题30 + 两行卡片(60+8+60) + 间距20 ≈ 178
-        const contentHeight = LevelsData.MAJOR_LEVELS.length * 185 + 40;
+        // 每个大级别区块高度：标题30 + 四行卡片(56*4+6*3) + 间距20 ≈ 292
+        const contentHeight = LevelsData.MAJOR_LEVELS.length * 300 + 40;
         const visibleHeight = height - 110; // 减去顶部标题和底部按钮区域
 
         this.scrollY = 0;
@@ -135,11 +135,18 @@ class LevelSelectScene extends Phaser.Scene {
         const cx = x + w / 2;
 
         if (unlocked) {
-            // 关卡编号 + 状态
-            const label = completed ? `✅ 第${level.minor + 1}关` : `▶ 第${level.minor + 1}关`;
+            // 关卡编号 + 状态 + Boss标识
+            const isBoss = level.isBoss;
+            let label;
+            if (completed) {
+                label = isBoss ? `👑 第${level.minor + 1}关` : `✅ 第${level.minor + 1}关`;
+            } else {
+                label = isBoss ? `🔥 第${level.minor + 1}关` : `▶ 第${level.minor + 1}关`;
+            }
+            const labelColor = isBoss ? '#ffcc00' : color;
             const cardText = this.add.text(cx, y + 16, label, {
                 font: 'bold 12px Arial',
-                fill: color
+                fill: labelColor
             }).setOrigin(0.5);
             this.scrollContainer.add(cardText);
 
@@ -176,7 +183,7 @@ class LevelSelectScene extends Phaser.Scene {
             });
         } else {
             // 锁定状态
-            const lockText = this.add.text(cx, y + 16, `🔒 第${level.minor + 1}关`, {
+            const lockText = this.add.text(cx, y + 16, level.isBoss ? `🔒 Boss${level.minor + 1}` : `🔒 第${level.minor + 1}关`, {
                 font: '11px Arial',
                 fill: '#556677'
             }).setOrigin(0.5);

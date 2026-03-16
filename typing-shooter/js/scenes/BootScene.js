@@ -47,6 +47,10 @@ class BootScene extends Phaser.Scene {
         this.createPowerupShieldTexture();
         this.createPowerupSlowTexture();
         this.createPowerupBombTexture();
+        this.createPowerupFreezeTexture();
+        this.createPowerupDoubleTexture();
+        this.createPowerupHealTexture();
+        this.createPowerupMagnetTexture();
         this.createParticleTexture();
         this.createHeartTexture();
         this.createStarTexture();
@@ -503,6 +507,85 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0xffaa00, 1); g.fillCircle(33*s,3*s,3*s);
         g.fillStyle(0xffdd44, 0.8); g.fillCircle(33*s,3*s,1.5*s);
         g.generateTexture('powerup_bomb', 48*s, 48*s);
+        g.destroy();
+    }
+
+    // ==================== 道具：冰冻 ====================
+    createPowerupFreezeTexture() {
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        const s = 2;
+        // 冰蓝色光圈
+        g.fillStyle(0x00ddff, 0.15); g.fillCircle(24*s,24*s,24*s);
+        g.fillStyle(0x00aaee, 0.7); g.fillCircle(24*s,24*s,20*s);
+        g.fillStyle(0x88eeff, 0.5); g.fillCircle(24*s,24*s,16*s);
+        // 雪花图案（6条线）
+        g.lineStyle(2*s, 0xffffff, 0.9);
+        for (let a = 0; a < 6; a++) {
+            const angle = a * Math.PI / 3;
+            const cx = 24*s, cy = 24*s, r = 12*s;
+            g.beginPath();
+            g.moveTo(cx, cy);
+            g.lineTo(cx + Math.cos(angle)*r, cy + Math.sin(angle)*r);
+            g.strokePath();
+        }
+        g.fillStyle(0xffffff, 0.8); g.fillCircle(24*s,24*s,3*s);
+        g.generateTexture('powerup_freeze', 48*s, 48*s);
+        g.destroy();
+    }
+
+    // ==================== 道具：双倍得分 ====================
+    createPowerupDoubleTexture() {
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        const s = 2;
+        // 金色光圈
+        g.fillStyle(0xffaa00, 0.15); g.fillCircle(24*s,24*s,24*s);
+        g.fillStyle(0xffcc22, 0.7); g.fillCircle(24*s,24*s,20*s);
+        g.fillStyle(0xffee66, 0.5); g.fillCircle(24*s,24*s,16*s);
+        g.fillStyle(0xffffff, 0.6); g.fillCircle(18*s,18*s,6*s);
+        // "x2" 文字用图形近似
+        g.fillStyle(0xffffff, 0.9);
+        g.fillRect(18*s,22*s,3*s,8*s); g.fillRect(26*s,22*s,3*s,8*s);
+        g.fillRect(21*s,26*s,5*s,3*s);
+        g.generateTexture('powerup_double', 48*s, 48*s);
+        g.destroy();
+    }
+
+    // ==================== 道具：治疗 ====================
+    createPowerupHealTexture() {
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        const s = 2;
+        // 绿色光圈
+        g.fillStyle(0x22cc66, 0.15); g.fillCircle(24*s,24*s,24*s);
+        g.fillStyle(0x33dd77, 0.7); g.fillCircle(24*s,24*s,20*s);
+        g.fillStyle(0x66ee99, 0.5); g.fillCircle(24*s,24*s,16*s);
+        g.fillStyle(0xffffff, 0.5); g.fillCircle(18*s,18*s,6*s);
+        // 十字形图标
+        g.fillStyle(0xffffff, 0.9);
+        g.fillRect(21*s,14*s,6*s,20*s);
+        g.fillRect(14*s,21*s,20*s,6*s);
+        g.generateTexture('powerup_heal', 48*s, 48*s);
+        g.destroy();
+    }
+
+    // ==================== 道具：磁铁 ====================
+    createPowerupMagnetTexture() {
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        const s = 2;
+        // 紫色光圈
+        g.fillStyle(0xff44ff, 0.15); g.fillCircle(24*s,24*s,24*s);
+        g.fillStyle(0xcc44cc, 0.7); g.fillCircle(24*s,24*s,20*s);
+        g.fillStyle(0xee88ee, 0.4); g.fillCircle(24*s,24*s,16*s);
+        // U形磁铁图案
+        g.lineStyle(4*s, 0xffffff, 0.9);
+        g.beginPath();
+        g.arc(24*s, 24*s, 10*s, 0, Math.PI, false);
+        g.strokePath();
+        // 两端红蓝色
+        g.fillStyle(0xff3333, 1); g.fillRect(13*s,18*s,4*s,10*s);
+        g.fillStyle(0x3344ff, 1); g.fillRect(31*s,18*s,4*s,10*s);
+        // 高光
+        g.fillStyle(0xffffff, 0.4); g.fillCircle(18*s,16*s,4*s);
+        g.generateTexture('powerup_magnet', 48*s, 48*s);
         g.destroy();
     }
 
