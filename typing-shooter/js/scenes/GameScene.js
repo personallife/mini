@@ -70,8 +70,8 @@ class GameScene extends Phaser.Scene {
         // 1. 星空滚动背景
         this.createScrollingStarfield();
 
-        // 2. 玩家飞机 - 固定在底部（键盘显示时放在键盘顶部，与高级一样）
-        const playerY = this.showKeyboard ? height - 230 : height - 60;
+        // 2. 玩家飞机 - 统一固定在屏幕最底部（键盘显示时在键盘正上方）
+        const playerY = this.showKeyboard ? height - 145 : height - 60;
         this.player = this.add.image(width / 2, playerY, 'player');
         this.player.setScale(0.35);
 
@@ -1660,15 +1660,29 @@ class GameScene extends Phaser.Scene {
         }
 
         // Boss \u7cbe\u7075\u6de1\u51fa
+        // Boss 精灵淡出并销毁
         this.tweens.add({
             targets: [this.boss.sprite, this.boss.nameText, this.boss.wordText, this.boss.typedText],
-            alpha: 0, duration: 1500, delay: 1000
+            alpha: 0, duration: 1500, delay: 1000,
+            onComplete: () => {
+                if (this.boss) {
+                    if (this.boss.sprite) this.boss.sprite.destroy();
+                    if (this.boss.nameText) this.boss.nameText.destroy();
+                    if (this.boss.wordText) this.boss.wordText.destroy();
+                    if (this.boss.typedText) this.boss.typedText.destroy();
+                }
+            }
         });
         this.tweens.add({
             targets: [this.boss.hpBarBg, this.boss.hpBar],
-            alpha: 0, duration: 800
+            alpha: 0, duration: 800,
+            onComplete: () => {
+                if (this.boss) {
+                    if (this.boss.hpBarBg) this.boss.hpBarBg.destroy();
+                    if (this.boss.hpBar) this.boss.hpBar.destroy();
+                }
+            }
         });
-
         // \u6e05\u9664\u6240\u6709\u5c0f\u654c\u673a
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             this.removeEnemy(this.enemies[i], i, true);
@@ -1689,8 +1703,16 @@ class GameScene extends Phaser.Scene {
             }).setOrigin(0.5).setDepth(100).setAlpha(0);
             this.tweens.add({ targets: victoryText, alpha: 1, y: this.gameHeight / 2 - 60, duration: 600 });
             this.tweens.add({ targets: bonusText, alpha: 1, duration: 600, delay: 300 });
+            // 2秒后淡出并销毁胜利文字
+            this.time.delayedCall(2000, () => {
+                this.tweens.add({ targets: [victoryText, bonusText], alpha: 0, duration: 500, onComplete: () => {
+                    victoryText.destroy();
+                    bonusText.destroy();
+                }});
+            });
         });
 
+        // 3秒后通关或恢复
         // 3\u79d2\u540e\u901a\u5173\u6216\u6062\u590d
         this.time.delayedCall(3000, () => {
             if (this.isCustomMode) {
