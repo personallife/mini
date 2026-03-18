@@ -57,10 +57,9 @@ class GameScene extends Phaser.Scene {
         this.slowSpeedFactor = 0.25;     // 减速系数（越小越慢）
         this.freezeActive = false;       // 冰冻状态
         this.freezeTimer = 0;
-        this.doubleScoreActive = false;  // 双倍得分状态
-        this.doubleScoreTimer = 0;
-        this.magnetActive = false;       // 磁铁状态
-        this.magnetTimer = 0;
+        // 无尽模式 Boss 状态
+        this.endlessBossKillThreshold = 30; // 每30击杀触发一次Boss
+        this.endlessBossCount = 0;          // 已击败的无尽Boss数量
     }
 
     create() {
@@ -184,19 +183,16 @@ class GameScene extends Phaser.Scene {
     spawnPowerup(x, y) {
         // 加权随机道具（减速/冰冻/护盾更常见，修复较少）
         const typesPool = [
-            'shield', 'shield',
+            'shield', 'shield', 'shield',
             'slow', 'slow', 'slow',
             'bomb',
             'freeze', 'freeze', 'freeze',
-            'double', 'double',
-            'heal',
-            'magnet'
+            'heal', 'heal'
         ];
         const type = Phaser.Utils.Array.GetRandom(typesPool);
         const textureMap = {
             shield: 'powerup_shield', slow: 'powerup_slow', bomb: 'powerup_bomb',
-            freeze: 'powerup_freeze', double: 'powerup_double',
-            heal: 'powerup_heal', magnet: 'powerup_magnet'
+            freeze: 'powerup_freeze', heal: 'powerup_heal'
         };
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         const collectLetter = letters[Phaser.Math.Between(0, 25)];
@@ -231,23 +227,7 @@ class GameScene extends Phaser.Scene {
             if (!p.alive) continue;
 
             // Beta: 磁铁效果 - 道具自动飞向玩家
-            if (this.magnetActive && this.player) {
-                const dx = this.player.x - p.x;
-                const dy = this.player.y - p.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist > 0) {
-                    const magnetSpeed = 180; // 磁铁吸引速度
-                    p.x += (dx / dist) * magnetSpeed * dt;
-                    p.y += (dy / dist) * magnetSpeed * dt;
-                    // 磁铁模式：靠近玩家自动收集
-                    if (dist < 50) {
-                        this.collectPowerup(p, i);
-                        continue;
-                    }
-                }
-            } else {
-                p.y += p.speed * dt;
-            }
+            p.y += p.speed * dt;
 
             p.sprite.setPosition(p.x, p.y);
             p.letterText.setPosition(p.x, p.y + 30);
@@ -295,16 +275,7 @@ class GameScene extends Phaser.Scene {
                 });
             }
         }
-        // 磁铁倒计时
-        if (this.magnetActive) {
-            this.magnetTimer -= dt;
-            if (this.magnetTimerText) this.magnetTimerText.setText(`🧲 ${Math.ceil(this.magnetTimer)}s`);
-            if (this.magnetTimer <= 0) {
-                this.magnetActive = false;
-                if (this.magnetTimerText) { this.magnetTimerText.destroy(); this.magnetTimerText = null; }
-                if (this.magnetOverlay) { this.magnetOverlay.destroy(); this.magnetOverlay = null; }
-            }
-        }
+
         // 冰冻倒计时
         if (this.freezeActive) {
             this.freezeTimer -= dt;
@@ -337,16 +308,7 @@ class GameScene extends Phaser.Scene {
                 });
             }
         }
-        // 双倍得分倒计时
-        if (this.doubleScoreActive) {
-            this.doubleScoreTimer -= dt;
-            if (this.doubleTimerText) this.doubleTimerText.setText(`✨x2 ${Math.ceil(this.doubleScoreTimer)}s`);
-            if (this.doubleScoreTimer <= 0) {
-                this.doubleScoreActive = false;
-                if (this.doubleTimerText) { this.doubleTimerText.destroy(); this.doubleTimerText = null; }
-                if (this.doubleOverlay) { this.doubleOverlay.destroy(); this.doubleOverlay = null; }
-            }
-        }
+
     }
 
     /**
@@ -386,9 +348,7 @@ class GameScene extends Phaser.Scene {
             case 'slow': this.activateSlow(); break;
             case 'bomb': this.activateBomb(); break;
             case 'freeze': this.activateFreeze(); break;
-            case 'double': this.activateDoubleScore(); break;
             case 'heal': this.activateHeal(); break;
-            case 'magnet': this.activateMagnet(); break;
         }
     }
 
@@ -542,48 +502,6 @@ class GameScene extends Phaser.Scene {
             stroke: '#003322', strokeThickness: 3
         }).setOrigin(0.5).setDepth(95).setAlpha(0);
         this.tweens.add({ targets: hint, alpha: 1, duration: 200, yoyo: true, hold: 500, onComplete: () => hint.destroy() });
-    }
-
-    /**
-     * 激活磁铁：8秒内道具自动飞向玩家
-     */
-    activateMagnet() {
-        this.magnetActive = true;
-        this.magnetTimer = 8;
-        // 视觉覆盖
-        if (this.magnetOverlay) this.magnetOverlay.destroy();
-        this.magnetOverlay = this.add.graphics().setDepth(88);
-        this.magnetOverlay.fillStyle(0xff44ff, 0.05);
-        this.magnetOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
-        // 提示文字
-        const hint = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, '🧲 磁铁！', {
-            font: 'bold 24px Arial', fill: '#ff88ff',
-            stroke: '#330033', strokeThickness: 3
-        }).setOrigin(0.5).setDepth(95).setAlpha(0);
-        this.tweens.add({ targets: hint, alpha: 1, duration: 200, yoyo: true, hold: 400, onComplete: () => hint.destroy() });
-        // HUD
-        if (this.magnetTimerText) this.magnetTimerText.destroy();
-        this.magnetTimerText = this.add.text(this.gameWidth - 15, 115, `🧲 8s`, {
-            font: 'bold 13px Arial', fill: '#ff88ff'
-        }).setOrigin(1, 0).setDepth(50);
-    }
-
-    /**
-     * 激活双倍得分：12 秒内得分×2
-     */
-    activateDoubleScore() {
-        this.doubleScoreActive = true;
-        this.doubleScoreTimer = 12;
-        // 视觉效果：金色光芒覆盖
-        if (this.doubleOverlay) this.doubleOverlay.destroy();
-        this.doubleOverlay = this.add.graphics().setDepth(88);
-        this.doubleOverlay.fillStyle(0xffaa00, 0.06);
-        this.doubleOverlay.fillRect(0, 0, this.gameWidth, this.gameHeight);
-        // HUD
-        if (this.doubleTimerText) this.doubleTimerText.destroy();
-        this.doubleTimerText = this.add.text(this.gameWidth - 15, 95, `✨x2 12s`, {
-            font: 'bold 13px Arial', fill: '#ffcc00'
-        }).setOrigin(1, 0).setDepth(50);
     }
 
     // ============================================
@@ -1228,7 +1146,7 @@ class GameScene extends Phaser.Scene {
         if (this.combo >= 20) comboMultiplier = 3.0;
         else if (this.combo >= 10) comboMultiplier = 2.0;
         else if (this.combo >= 5) comboMultiplier = 1.5;
-        const finalScore = Math.floor(baseScore * comboMultiplier * (this.doubleScoreActive ? 2 : 1));
+        const finalScore = Math.floor(baseScore * comboMultiplier);
         this.score += finalScore;
 
         this.updateScoreText();
@@ -1253,6 +1171,21 @@ class GameScene extends Phaser.Scene {
         // 检查通关（无尽模式不通关）
         if (!this.isCustomMode && this.kills >= this.levelConfig.targetKills) {
             this.onLevelComplete();
+        }
+
+        // 无尽模式：每30击杀触发一次简单Boss + 极缓慢难度递增
+        if (this.isCustomMode) {
+            // 每30击杀触发Boss（Boss战期间不算）
+            if (!this.bossActive && this.kills > 0 && this.kills % this.endlessBossKillThreshold === 0) {
+                this.startEndlessBoss();
+            }
+            // 极缓慢难度递增：每击杀一个敌机，速度+0.15，间隔-8ms（非常微小）
+            this.levelConfig.speed = Math.min(this.levelConfig.speed + 0.15, 120);
+            if (this.spawnTimer && this.spawnTimer.delay) {
+                const newInterval = Math.max(800, this.levelConfig.spawnInterval - 8);
+                this.levelConfig.spawnInterval = newInterval;
+                this.spawnTimer.delay = newInterval;
+            }
         }
     }
 
@@ -1284,6 +1217,26 @@ class GameScene extends Phaser.Scene {
     // ============================================
     // Beta: Boss 战斗系统
     // ============================================
+
+    /**
+     * 无尽模式触发简单Boss
+     * 根据已击败Boss数量逐步提升Boss难度
+     */
+    startEndlessBoss() {
+        // 根据已击败Boss数选择Boss类型（从最简单开始，循环递增）
+        const bossList = [
+            'boss1a', 'boss1b', 'boss1c', 'boss1d',
+            'boss2a', 'boss2b', 'boss2c', 'boss2d',
+            'boss3a', 'boss3b', 'boss3c', 'boss3d'
+        ];
+        const bossIdx = Math.min(this.endlessBossCount, bossList.length - 1);
+        const bossKey = bossList[bossIdx];
+
+        // 临时设置levelConfig的boss属性
+        this.levelConfig.boss = bossKey;
+        this.isBossLevel = true;
+        this.startBossFight();
+    }
 
     /**
      * 开始 Boss 战
@@ -1738,9 +1691,31 @@ class GameScene extends Phaser.Scene {
             this.tweens.add({ targets: bonusText, alpha: 1, duration: 600, delay: 300 });
         });
 
-        // 3\u79d2\u540e\u901a\u5173
+        // 3\u79d2\u540e\u901a\u5173\u6216\u6062\u590d
         this.time.delayedCall(3000, () => {
-            this.onLevelComplete();
+            if (this.isCustomMode) {
+                // \u65e0\u5c3d\u6a21\u5f0f\uff1a\u6062\u590d\u666e\u901a\u654c\u673a\u751f\u6210
+                this.boss = null;
+                this.bossEnraged = false;
+                this.bossFinalForm = false;
+                this.isBossLevel = false;
+                this.endlessBossCount++;
+                // \u56de\u590d1\u70b9\u751f\u547d
+                if (this.lives < this.levelConfig.lives) {
+                    this.lives++;
+                    this.updateHeartsDisplay();
+                }
+                SoundManager.startBGM('normal');
+                this.spawnTimer = this.time.addEvent({
+                    delay: this.levelConfig.spawnInterval,
+                    callback: this.spawnEnemy,
+                    callbackScope: this,
+                    loop: true
+                });
+                this.time.delayedCall(500, () => this.spawnEnemy());
+            } else {
+                this.onLevelComplete();
+            }
         });
     }
 
@@ -1828,7 +1803,9 @@ class GameScene extends Phaser.Scene {
         if (!this.isCustomMode) {
             this.progressText.setText(`${this.levelConfig.name}  |  ${this.kills}/${this.levelConfig.targetKills}`);
         } else {
-            this.progressText.setText(`♾️ 无尽模式  |  击落: ${this.kills}`);
+            const nextBoss = this.endlessBossKillThreshold - (this.kills % this.endlessBossKillThreshold);
+            const bossInfo = this.bossActive ? '  ⚔️ BOSS战' : `  🎯 Boss: ${nextBoss}`;
+            this.progressText.setText(`♾️ 无尽  |  击落: ${this.kills}${bossInfo}`);
         }
     }
 
@@ -1970,7 +1947,7 @@ class GameScene extends Phaser.Scene {
     // ============================================
     onLevelComplete() {
         this.isGameOver = true;
-        this.spawnTimer.destroy();
+        if (this.spawnTimer) this.spawnTimer.destroy();
         SoundManager.stopBGM();
         SoundManager.playVictoryBGM();
 
@@ -2005,7 +1982,7 @@ class GameScene extends Phaser.Scene {
 
     onGameOver(victory) {
         this.isGameOver = true;
-        this.spawnTimer.destroy();
+        if (this.spawnTimer) this.spawnTimer.destroy();
         SoundManager.stopBGM();
         SoundManager.playDefeatBGM();
 
@@ -2036,10 +2013,10 @@ class GameScene extends Phaser.Scene {
         this.isPaused = !this.isPaused;
 
         if (this.isPaused) {
-            this.spawnTimer.paused = true;
+            if (this.spawnTimer) this.spawnTimer.paused = true;
             this.showPauseMenu();
         } else {
-            this.spawnTimer.paused = false;
+            if (this.spawnTimer) this.spawnTimer.paused = false;
             this.hidePauseMenu();
         }
     }
